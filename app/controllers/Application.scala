@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 import javax.inject._
 
-import actors.{UserActor, OracleActor}
+import actors.{PiActor, UserActor, OracleActor}
 
 import scala.Left
 import scala.Right
@@ -26,6 +26,9 @@ import play.api.mvc.WebSocket
 class Application @Inject() (system: ActorSystem) extends Controller {
 
   val oracle = system.actorOf(OracleActor.props, "oracle-actor")
+
+  system.actorOf(Props[PiActor])
+
   val UID = "uid"
   var counter = 0;
 
@@ -34,7 +37,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
   val cancellable = system.scheduler.schedule(0 milliseconds, 20 seconds, oracle, Tick)
 
-  system.scheduler.scheduleOnce(10 seconds, oracle, PlayMedia("TIME0001"))
+//  system.scheduler.scheduleOnce(10 seconds, oracle, PlayMedia("TIME0001"))
 
   def index = Action { implicit request =>
     {

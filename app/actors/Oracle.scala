@@ -151,14 +151,6 @@ object OracleActor {
       MediaFile("WATER023",9.33,Seq("WaterOracle","Answer","Earth","Fire","Water","Air","Aether","none"))
   )
 
-  class Button()
-  case class EarthButton() extends Button
-  case class AirButton() extends Button
-  case class FireButton() extends Button
-  case class WaterButton() extends Button
-  case class AetherButton() extends Button
-
-
   // Idle state
   //
   // During IdleState the oracle is waiting for visitors. It randomly plays some clips that are non specific.
@@ -205,7 +197,7 @@ object OracleActor {
   // Messages to client
   case class PlayMedia(name:String)
   case class ButtonLight(earth: Boolean, air: Boolean, fire: Boolean, water : Boolean, aether : Boolean)
-  case class ButtonSelect(button: Button)
+  case class ButtonSelect(button: Button.Value)
 }
 
 class OracleActor extends Actor {
@@ -220,6 +212,10 @@ class OracleActor extends Actor {
       BoardActor() ! PlayMedia(files(Random.nextInt(files.size)).name)
       BoardActor() ! ButtonLight(Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean())
     }
+    case button:ButtonSelect => {
+      println("Button push received" + button)
+    }
+
     case media:PlayMedia => {
       BoardActor() ! media
     }
