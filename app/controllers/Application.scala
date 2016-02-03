@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 import javax.inject._
 
-import actors.{PiActor, UserActor, OracleActor}
+import actors.{VideoPlayerActor, PiActor, UserActor, OracleActor}
 
 import scala.Left
 import scala.Right
@@ -28,6 +28,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   val oracle = system.actorOf(OracleActor.props, "oracle-actor")
 
   system.actorOf(Props[PiActor])
+  system.actorOf(Props[VideoPlayerActor])
 
   val UID = "uid"
   var counter = 0;

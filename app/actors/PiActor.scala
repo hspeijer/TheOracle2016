@@ -47,6 +47,7 @@ class PiActor extends Actor with ActorLogging {
       aether.setShutdownOptions(true, PinState.LOW)
 
       input = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      input.setDebounce(500)
 
       class InputListener extends GpioPinListenerDigital {
         override def handleGpioPinDigitalStateChangeEvent(event: GpioPinDigitalStateChangeEvent) = {
@@ -75,7 +76,7 @@ class PiActor extends Actor with ActorLogging {
       air.setState(lights.air)
       aether.setState(lights.aether)
     }
-    case other => log.error("unhandled: " + other)
+    case other => log.info("unhandled: " + other)
   }
 }
 
