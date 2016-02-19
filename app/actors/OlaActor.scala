@@ -18,18 +18,18 @@ class OlaActor extends Actor with ActorLogging {
 
   override def preStart() = {
     client = new OlaClient();
-    client.sendDmx(0, Array[Short](255,255,255,255))
+    client.sendDmx(0, Array[Short](254,255,255,255))
 
     BoardActor() ! Subscribe
   }
 
   def receive = LoggingReceive {
     case lights: ButtonLight => {
-      if(lights.air) { client.sendDmx(0, Array[Short](255,0,234,255)) }
-      if(lights.earth) { client.sendDmx(0, Array[Short](255,0,255,0))}
-      if(lights.fire) { client.sendDmx(0, Array[Short](255,255,0,0))}
-      if(lights.water) { client.sendDmx(0, Array[Short](255,0,0,255))}
-      if(lights.aether) { client.sendDmx(0, Array[Short](255,255,255,255))}
+      if(lights.air) { client.sendDmx(0, Array[Short](254,0,234,254)) }
+      if(lights.earth) { client.sendDmx(0, Array[Short](254,0,254,0))}
+      if(lights.fire) { client.sendDmx(0, Array[Short](254,254,0,0))}
+      if(lights.water) { client.sendDmx(0, Array[Short](254,0,0,254))}
+      if(lights.aether) { client.sendDmx(0, Array[Short](254,254,254,254))}
     }
   }
 }
