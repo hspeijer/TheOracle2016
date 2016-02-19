@@ -1,13 +1,18 @@
 package actors
 
+import actors.OracleActor.{Tick, PlayMedia, ButtonSelect, Oracle}
 import akka.actor._
 import play.api.libs.json.{JsObject, Json}
-import play.libs.Akka
-import scala.util.Random
 
+import play.libs.Akka
+import scala.collection.SortedMap
+import scala.language.postfixOps
+import scala.util.Random
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object OracleActor {
-  def props = Props[OracleActor]
+  def props(scheduler:Scheduler) = Props(classOf[OracleActor], scheduler)
 
   case class MediaFile(name: String, duration: Double, tags: Seq[String])
 
@@ -151,6 +156,10 @@ object OracleActor {
       MediaFile("WATER023",9.33,Seq("WaterOracle","Answer","Earth","Fire","Water","Air","Aether","none"))
   )
 
+  def getMediaFile(tags: List[String]) = {
+    files.filter(file => tags.forall(currentTag => file.tags.exists(tag => tag == currentTag)))
+  }
+
   // Idle state
   //
   // During IdleState the oracle is waiting for visitors. It randomly plays some clips that are non specific.
@@ -181,8 +190,10 @@ object OracleActor {
   }
 
   object Oracle extends Enumeration {
-    type Oracle = Value
     val Time, Earth, Water, Hillbilly, Fire = Value
+    def random() = {
+      Oracle(Random.nextInt(Oracle.values.size))
+    }
   }
 
   object Button extends Enumeration {
@@ -196,29 +207,119 @@ object OracleActor {
 
   // Messages to client
   case class PlayMedia(name:String)
-  case class ButtonLight(earth: Boolean, air: Boolean, fire: Boolean, water : Boolean, aether : Boolean)
+  case class ButtonLight(fire: Boolean, water: Boolean, earth: Boolean, air : Boolean, aether : Boolean) {
+    def this(mask : Int) {
+      this(
+        (mask & 0x01) > 0,
+        (mask & 0x02) > 0,
+        (mask & 0x04) > 0,
+        (mask & 0x08) > 0,
+        (mask & 0x10) > 0
+      )
+    }
+    def toByte() : Byte = {
+      var result = 0
+
+      if(fire)   (result = result | 0x01)
+      if(water)  (result = result | 0x02)
+      if(earth)  (result = result | 0x04)
+      if(air)    (result = result | 0x08)
+      if(aether) (result = result | 0x10)
+
+      result.toByte
+    }
+  }
   case class ButtonSelect(button: Button.Value)
 }
 
-class OracleActor extends Actor {
-  import OracleActor._
+class ButtonState {
 
-  var isPlaying = false
-  var currentState = State.Idle
-  var chosenElement = Button.None
+}
+
+abstract class BaseState {
+  var videoState : VideoState = null
+  var buttonState : ButtonState = null
+
+  def receive(message : Any)
+
+}
+
+class VideoState {
+
+}
+
+
+
+class IdleState(oracle : OracleActor) extends BaseState {
+
+  val introFiles = OracleActor.getMediaFile(List("Intro"))
+  var currentSchedule : Cancellable = null
+
+  playNext
+
+  ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+
+  override def receive(message: Any): Unit = {
+    message match  {
+      case _:ButtonSelect => {
+        currentSchedule.cancel()
+        ButtonAnimatorActor() ! ButtonAnimatorActor.Stop
+        oracle.currentState = new ChallengeState(oracle)
+      }
+      case _:PlayMedia => {
+        println("Idle Play Media")
+        ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+        playNext
+      }
+      case _ => {
+      }
+    }
+  }
+
+  def playNext(): Unit = {
+    var currentMedia = introFiles(Random.nextInt(introFiles.size))
+
+    //schedule playtime video + 10 seconds + random 0-30 seconds
+    currentSchedule = oracle.scheduler.scheduleOnce(currentMedia.duration + 10 + Random.nextInt(30) seconds, BoardActor(), PlayMedia(currentMedia.name))
+  }
+
+}
+
+class ChallengeState(oracle : OracleActor) extends BaseState {
+  var oracleType : Oracle.Value = Oracle.random()
+
+  override def receive(message: Any): Unit = {
+
+  }
+}
+
+
+
+class OracleActor(val scheduler:Scheduler) extends Actor {
+  println("Creating Oracle Actor")
+
+  var currentState : BaseState = new IdleState(this)
+
+  override def preStart() = {
+    BoardActor() ! Subscribe
+  }
 
   def receive = {
-    case Tick => {
-      BoardActor() ! PlayMedia(files(Random.nextInt(files.size)).name)
-      BoardActor() ! ButtonLight(Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean())
-    }
-    case button:ButtonSelect => {
-      println("Button push received" + button)
+    case message : Any => {
+      currentState.receive (message)
     }
 
-    case media:PlayMedia => {
-      BoardActor() ! media
-    }
+//    case Tick => {
+//      BoardActor() ! PlayMedia(files(Random.nextInt(files.size)).name)
+//      BoardActor() ! ButtonLight(Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean(),Random.nextBoolean())
+//    }
+//    case button:ButtonSelect => {
+//      println("Button push received" + button)
+//    }
+//
+//    case media:PlayMedia => {
+//      BoardActor() ! media
+//    }
   }
 
 

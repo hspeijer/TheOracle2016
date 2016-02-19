@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 import javax.inject._
 
-import actors.{VideoPlayerActor, PiActor, UserActor, OracleActor}
+import actors._
 
 import scala.Left
 import scala.Right
@@ -25,18 +25,20 @@ import play.api.mvc.WebSocket
 @Singleton
 class Application @Inject() (system: ActorSystem) extends Controller {
 
-  val oracle = system.actorOf(OracleActor.props, "oracle-actor")
+  println("Init Application")
+  val oracle = system.actorOf(OracleActor.props(system.scheduler))
 
   system.actorOf(Props[PiActor])
+  system.actorOf(Props[OlaActor])
   system.actorOf(Props[VideoPlayerActor])
 
   val UID = "uid"
-  var counter = 0;
+  var counter = 0
 
   //Use the system's dispatcher as ExecutionContext
   import system.dispatcher
 
-  val cancellable = system.scheduler.schedule(0 milliseconds, 20 seconds, oracle, Tick)
+//  val cancellable = system.scheduler.schedule(0 milliseconds, 20 seconds, oracle, Tick)
 
 //  system.scheduler.scheduleOnce(10 seconds, oracle, PlayMedia("TIME0001"))
 

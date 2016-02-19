@@ -1,6 +1,6 @@
 package actors
 
-import actors.OracleActor.{ButtonLight, PlayMedia}
+import actors.OracleActor.{Button, ButtonSelect, ButtonLight, PlayMedia}
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
@@ -32,7 +32,18 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
       val js = Json.obj("type" -> "lights", "earth" -> lights.earth, "air" -> lights.air, "water" -> lights.water, "fire" -> lights.fire, "aether" -> lights.aether)
       out ! js
     }
-    case js: JsValue => (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ ) }
+    case js: JsValue => {
+      (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ ) }
+//      if(js \ "type" == "button-click") {
+//        js \ "button" match {
+//          case "air" => BoardActor() ! ButtonSelect(Button.Air)
+//          case "fire" => BoardActor() ! ButtonSelect(Button.Fire)
+//          case "earth" => BoardActor() ! ButtonSelect(Button.Earth)
+//          case "water" => BoardActor() ! ButtonSelect(Button.Water)
+//          case "aether" => BoardActor() ! ButtonSelect(Button.Aether)
+//        }
+//      }
+    }
     case other => log.error("unhandled: " + other)
   }
 }
