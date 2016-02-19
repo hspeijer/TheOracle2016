@@ -410,7 +410,7 @@ public class OlaClient {
     public ByteString convertToUnsigned(short[] values) {
         byte[] unsigned = new byte[values.length];
         for (int i = 0; i < values.length; i++) {
-            unsigned[i] = (byte) values[i];
+            unsigned[i] = (byte) (values[i] & 0xff) ;
         }
         return ByteString.copyFrom(unsigned);
     }
