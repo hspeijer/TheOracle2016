@@ -263,7 +263,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
     message match  {
       case _:ButtonSelect => {
         currentSchedule.cancel()
-        ButtonAnimatorActor() ! ButtonAnimatorActor.Stop
+        ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
         oracle.currentState = new ChallengeState(oracle)
       }
       case _:PlayMedia => {
