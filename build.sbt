@@ -18,6 +18,8 @@ libraryDependencies ++= Seq(
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 resolvers += "oss-snapshots-repo" at "https://oss.sonatype.org/content/groups/public"
 
+watchSources <+= sourceDirectory map { _ / "app" / "actors" }
+
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
