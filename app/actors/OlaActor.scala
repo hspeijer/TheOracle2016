@@ -112,5 +112,3 @@ class FadingLight(id: Short, argb: ARGB) extends OlaLight(id, argb) {
   var startARGB = new ARGB()
   var endARGB = new ARGB()
 }
-
-}
