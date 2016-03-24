@@ -84,7 +84,7 @@ class OlaActor extends Actor with ActorLogging {
     }
   }
 
-  class OlaLight(id: Short, argb : ARGB) {
+  class OlaLight(id: Int, argb : ARGB) {
 
     def this(id : Int) = {
       this(id, new ARGB(0, 0, 0, 0))
