@@ -16,7 +16,7 @@ class OlaActor extends Actor with ActorLogging {
   val UNIVERSE_ID: Short = 0
 
   var client: OlaClient = null
-  var lights: Array[OlaLight] = Array(new OlaLight(), new OlaLight(), new OlaLight(), new OlaLight(), new OlaLight())
+  var lights: Array[OlaLight] = Array(new OlaLight(0), new OlaLight(1), new OlaLight(2), new OlaLight(3), new OlaLight(4))
 
   override def preStart() = {
     client = new OlaClient()
@@ -69,18 +69,25 @@ class OlaActor extends Actor with ActorLogging {
       }
 
   }
-
-
-  class OlaLight(
-                  var id: Short = 0,
-                  var a: Short = 0,
-                  var r: Short = 0,
-                  var g: Short = 0,
-                  var b: Short = 0
-                  ) {
+  
+  class ARGB(var a: Short = 0,
+             var r: Short = 0,
+             var g: Short = 0,
+             var b: Short = 0) {
 
     def this() = {
       this(0, 0, 0, 0)
+    }
+
+    def toArray() = {
+      Array[Short](a,r,g,b)
+    }
+  }
+
+  class OlaLight(id: Short, argb : ARGB) {
+
+    def this(id : Int) = {
+      this(id, new ARGB(0, 0, 0, 0))
     }
 
     def clear() = {
@@ -88,17 +95,21 @@ class OlaActor extends Actor with ActorLogging {
     }
 
     def setARGB(a: Short, r: Short, g: Short, b: Short) = {
-      this.a = a
-      this.r = r
-      this.g = g
-      this.b = b
+      argb.a = a
+      argb.r = r
+      argb.g = g
+      argb.b = b
     }
 
     def addToFrame(frameData: Array[Short]) = {
-      frameData(id * 4) = a
-      frameData(id * 4 + 1) = r
-      frameData(id * 4 + 2) = g
-      frameData(id * 4 + 3) = b
+      argb.toArray().copyToArray(frameData, id * 4)
     }
+  }
+  
+  class FadingLight(id: Short, argb : ARGB) extends OlaLight(id,argb) {
+    var currentStep = 0
+    var steps = 0
+    var startARGB = new ARGB()
+    var endARGB = new ARGB()
   }
 }
