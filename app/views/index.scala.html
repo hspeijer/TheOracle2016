@@ -99,7 +99,7 @@
 
         myVideo.play();
 
-        var socket = new WebSocket("ws://localhost:9000/socket")
+        var socket = new WebSocket("ws://192.168.1.102:9000/socket")
 
         socket.onmessage = function(event) {
             var message = JSON.parse (event.data)
