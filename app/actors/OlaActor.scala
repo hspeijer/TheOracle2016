@@ -61,7 +61,7 @@ class OlaActor extends Actor with ActorLogging {
       }
 
       def sendDmx(): Unit = {
-        var frame = Array[Short]().padTo(512, 0)
+        var frame = Array[Short]().padTo(512, 0.toShort)
         for (light <- lights) {
           light.addToFrame(frame)
         }
