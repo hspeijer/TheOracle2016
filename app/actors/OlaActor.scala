@@ -30,21 +30,21 @@ class OlaActor extends Actor with ActorLogging {
 
       clearAll()
 
-      if (lightsMessage.air) {
-        lights(0).setARGB(255, 0, 127, 255)
-        //client.sendDmx(0, Array[Short](127,0,64,127).padTo(512, 0.toShort))
-      }
-      if (lightsMessage.earth) {
-        lights(1).setARGB(255, 0, 255, 0)
-        //client.sendDmx(0, Array[Short](127,0,127,0).padTo(512, 0.toShort))
-      }
       if (lightsMessage.fire) {
-        lights(2).setARGB(255, 255, 0, 0)
+        lights(0).setARGB(255, 255, 0, 0)
         //client.sendDmx(0, Array[Short](127,127,0,0).padTo(512, 0.toShort))
       }
       if (lightsMessage.water) {
-        lights(3).setARGB(255, 0, 0, 255)
+        lights(1).setARGB(255, 0, 0, 255)
         //client.sendDmx(0, Array[Short](127,0,0,127).padTo(512, 0.toShort))
+      }
+      if (lightsMessage.earth) {
+        lights(2).setARGB(255, 0, 255, 0)
+        //client.sendDmx(0, Array[Short](127,0,127,0).padTo(512, 0.toShort))
+      }
+      if (lightsMessage.air) {
+        lights(3).setARGB(255, 0, 127, 255)
+        //client.sendDmx(0, Array[Short](127,0,64,127).padTo(512, 0.toShort))
       }
       if (lightsMessage.aether) {
         //client.sendDmx(0, Array[Short](127,127,127,127).padTo(512, 0.toShort))
