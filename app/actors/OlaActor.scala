@@ -16,11 +16,12 @@ class OlaActor extends Actor with ActorLogging {
 
   var client : OlaClient = null
 
-  override def preStart() = {
-    client = new OlaClient();
-    client.sendDmx(0, Array[Short](127,127,127,127))
 
-    BoardActor() ! Subscribe
+  override def preStart() = {
+    client = new OlaClient()
+    client.sendDmx(0, Array[Short](127,0,255,255).padTo(512, 0))
+
+    //BoardActor() ! Subscribe
   }
 
   def receive = LoggingReceive {
