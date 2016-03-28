@@ -257,7 +257,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
 
   playNext
 
-  ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+//  ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
 
   override def receive(message: Any): Unit = {
     message match  {
@@ -268,7 +268,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
       }
       case _:PlayMedia => {
         println("Idle Play Media")
-        ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+//        ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
         playNext
       }
       case _ => {

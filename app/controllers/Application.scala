@@ -26,11 +26,11 @@ import play.api.mvc.WebSocket
 class Application @Inject() (system: ActorSystem) extends Controller {
 
   println("Init Application")
-  val oracle = system.actorOf(OracleActor.props(system.scheduler))
+//  val oracle = system.actorOf(OracleActor.props(system.scheduler))
 
-  system.actorOf(Props[PiActor])
-  system.actorOf(Props[OlaActor])
-  system.actorOf(Props[VideoPlayerActor])
+//  system.actorOf(Props[PiActor])
+//  system.actorOf(Props[OlaActor])
+//  system.actorOf(Props[VideoPlayerActor])
 
   val UID = "uid"
   var counter = 0
@@ -56,12 +56,12 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     }
   }
 
-  def websocket = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
-    Future.successful(request.session.get(UID) match {
-      case None => Left(Forbidden)
-      case Some(uid) => Right(UserActor.props(uid))
-    })
-  }
+//  def websocket = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
+//    Future.successful(request.session.get(UID) match {
+//      case None => Left(Forbidden)
+//      case Some(uid) => Right(UserActor.props(uid))
+//    })
+//  }
 
   def media(path : String) = Action {
     Ok("File:" + path)

@@ -1,0 +1,170 @@
+<html>
+<head>
+<style>
+    body {
+        background-color: black;
+    }
+
+    .light {
+        float: left;
+        height: 50px;
+        width: 50px;
+        border: 1px solid gray;
+        margin: 4px;
+    }
+
+    .sensor {
+        float: left;
+        height: 6px;
+        width: 6px;
+        border: 1px solid gray;
+        margin-left: 26px;
+        margin-right: 26px;
+    }
+
+    .on {
+        background-color: #0F0;
+    }
+
+    .lightbar {
+        clear: both;
+    }
+</style>
+
+</head>
+<body onload="init()">
+    <div class="lightbar">
+        <div class="light" id="light-0">&nbsp;</div>
+        <div class="light" id="light-1">&nbsp;</div>
+        <div class="light" id="light-2">&nbsp;</div>
+        <div class="light" id="light-3">&nbsp;</div>
+        <div class="light" id="light-4">&nbsp;</div>
+    </div>
+    <br/>
+    <div class="lightbar">
+        <div class="sensor" id="sensor-0">&nbsp;</div>
+        <div class="sensor on" id="sensor-1">&nbsp;</div>
+        <div class="sensor" id="sensor-2">&nbsp;</div>
+        <div class="sensor on" id="sensor-3">&nbsp;</div>
+        <div class="sensor" id="sensor-4">&nbsp;</div>
+    </div>
+<script>
+    var lights = []
+    var sensors = []
+    var colours = [{r:0xff, g:0x00, b:0x00}, {r:0xff, g:0x00, b:0xff}, {r:0x00, g:0x00, b:0xff}, {r:0x00, g:0xff, b:0xff}, {r:0x00, g:0xff, b:0x00}]
+    var frameCount = 0
+
+    // time(frame), light(x), r(y), g, b
+    // y = a * sin(b * (x + c))
+
+    function setRed(which, func) {
+
+    }
+
+    function sin(func) {
+
+    }
+
+    function constant(value) {
+
+    }
+
+    function scope(id) {
+
+    }
+
+    function multiply(arg1, arg2) {
+
+    }
+
+    var pattern1 = [setRed(scope("light"), sin(multiply(constant(0.5), scope("frame"))))]
+
+
+
+    var pressed={};
+    document.onkeydown=function(e){
+        e = e || window.event;
+        pressed['key' + e.keyCode] = true;
+    }
+
+    document.onkeyup=function(e){
+        e = e || window.event;
+        delete pressed['key' + e.keyCode];
+    }
+
+    function init() {
+        console.log("Init lights!")
+
+        for(var i = 0; i < 5; i++) {
+            lights[i] = {element: document.getElementById('light-' + i)}
+            lights[i].brightness = 0;
+        }
+
+        for(var i = 0; i < 5; i++) {
+            sensors[i] = {element:document.getElementById('sensor-' + i)}
+        }
+
+
+        window.setInterval(animLoop, 1000/60)
+    }
+
+    function updateSensors() {
+        var keys = ['key81', 'key87', 'key69', 'key82', 'key84']
+
+        for(var i = 0; i < 5; i++) {
+            sensors[i].value = pressed[keys[i]]
+            if(sensors[i].value) {
+                sensors[i].element.className = 'sensor on'
+            } else {
+                sensors[i].element.className = 'sensor'
+            }
+        }
+    }
+
+    function mixColourRGB(from, to, percent) {
+        var result = {}
+
+        // 0 -> 255 , 50 => 127  0 + ((255 - 0) * (50/100))
+
+        result.r = Math.floor(from.r + ((to.r - from.r) * (percent/100)))
+        result.g = Math.floor(from.g + ((to.g - from.g) * (percent/100)))
+        result.b = Math.floor(from.b + ((to.b - from.b) * (percent/100)))
+
+        return result
+    }
+
+    function fader(delta,min,max) {
+        return function(value) {
+            var result = value + delta
+            if(result > max) result = max
+            if(result < min) result = min
+            return result
+        }
+    }
+
+    function updateLights() {
+        for(var i = 0; i < 5; i++) {
+            if(sensors[i].value) {
+                lights[i].frameFunction = fader(5,0,100)
+            } else {
+                lights[i].frameFunction = fader(-1,0,100)
+            }
+
+            lights[i].brightness = lights[i].frameFunction(lights[i].brightness)
+            lights[i].colour = mixColourRGB({r:0,g:0,b:0}, colours[i], lights[i].brightness)
+
+            lights[i].element.setAttribute("style","background-color:rgb(" + lights[i].colour.r + "," + lights[i].colour.g + "," + lights[i].colour.b +")")
+        }
+    }
+
+    function animLoop() {
+        frameCount++
+
+        updateSensors()
+        updateLights()
+
+
+    }
+</script>
+</body>
+</html>
