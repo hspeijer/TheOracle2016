@@ -15,7 +15,7 @@ import sys.process._
  */
 class VideoPlayerActor extends Actor with ActorLogging {
 //  val command = "open /Applications/VLC.app ./public/mp4/"
-  val command = "omxplayer ./public/mp4/"
+  val command = "omxplayer ./public/mpeg2/"
 
   override def preStart() = {
     BoardActor() ! Subscribe
@@ -23,7 +23,7 @@ class VideoPlayerActor extends Actor with ActorLogging {
 
   def receive = LoggingReceive {
     case media:PlayMedia => {
-      val commandStr = command + media.name + ".mp4"
+      val commandStr = command + media.name + ".mpg"
 
       log.info("Exec " + commandStr)
 
