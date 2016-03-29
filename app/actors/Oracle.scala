@@ -198,7 +198,7 @@ object OracleActor {
 
   object Button extends Enumeration {
     type Button = Value
-    val Earth, Water, Air, Fire, Aether, None = Value
+    val Earth, Water, Air, Fire,  Aether, None = Value
   }
 
 
