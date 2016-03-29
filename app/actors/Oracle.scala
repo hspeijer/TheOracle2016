@@ -190,7 +190,7 @@ object OracleActor {
   }
 
   object Oracle extends Enumeration {
-    val Time, Earth, Water, Hillbilly, Fire = Value
+    val TimeOracle, EarthOracle, WaterOracle, HillbOracle, FireOracle = Value
     def random() = {
       Oracle(Random.nextInt(Oracle.values.size))
     }
@@ -252,12 +252,13 @@ class VideoState {
 
 class IdleState(oracle : OracleActor) extends BaseState {
 
+  println("Idle State")
   val introFiles = OracleActor.getMediaFile(List("Intro"))
   var currentSchedule : Cancellable = null
 
   playNext
 
-//  ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+  ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
 
   override def receive(message: Any): Unit = {
     message match  {
@@ -287,11 +288,12 @@ class IdleState(oracle : OracleActor) extends BaseState {
 }
 
 class ChallengeState(oracle : OracleActor) extends BaseState {
+  println("Challenge State")
   var oracleType : Oracle.Value = Oracle.random()
 
-  val mediaFiles = OracleActor.getMediaFile(List("Intro"))
+  val mediaFiles = OracleActor.getMediaFile(List("Challenge", oracleType.toString))
 
-  BoardActor() ! PlayMedia(mediaFiles(0).name)
+  BoardActor() ! PlayMedia(mediaFiles(Random.nextInt(mediaFiles.size)).name)
 
   override def receive(message: Any): Unit = {
     message match  {
