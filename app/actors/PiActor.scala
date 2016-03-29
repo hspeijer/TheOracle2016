@@ -35,15 +35,15 @@ class PiActor extends Actor with ActorLogging {
     try {
       gpio = GpioFactory.getInstance()
 
-      fire = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      fire = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02)
       fire.setDebounce(500)
       aether = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
       aether.setDebounce(500)
-      earth = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      earth = gpio.provisionDigitalInputPin(RaspiPin.GPIO_04)
       earth.setDebounce(500)
-      air = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      air = gpio.provisionDigitalInputPin(RaspiPin.GPIO_17)
       air.setDebounce(500)
-      water = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      water = gpio.provisionDigitalInputPin(RaspiPin.GPIO_27)
       water.setDebounce(500)
 
       class SensorListener(button : Button) extends GpioPinListenerDigital {
