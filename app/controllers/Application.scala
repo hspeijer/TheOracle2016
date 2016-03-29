@@ -56,12 +56,12 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     }
   }
 
-//  def websocket = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
-//    Future.successful(request.session.get(UID) match {
-//      case None => Left(Forbidden)
-//      case Some(uid) => Right(UserActor.props(uid))
-//    })
-//  }
+  def websocket = WebSocket.tryAcceptWithActor[JsValue, JsValue] { implicit request =>
+    Future.successful(request.session.get(UID) match {
+      case None => Left(Forbidden)
+      case Some(uid) => Right(UserActor.props(uid))
+    })
+  }
 
   def media(path : String) = Action {
     Ok("File:" + path)

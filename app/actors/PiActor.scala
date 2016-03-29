@@ -28,22 +28,22 @@ class PiActor extends Actor with ActorLogging {
   var air : GpioPinDigitalInput = null
   var aether : GpioPinDigitalInput = null
 
-  val sensorState = mutable.SortedSet[Button]()
+  var sensorState = mutable.SortedSet[Button]()
 
   override def preStart() = {
 
     try {
       gpio = GpioFactory.getInstance()
 
-      fire = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02)
+      fire = gpio.provisionDigitalInputPin(RaspiPin.GPIO_08)
       fire.setDebounce(500)
-      aether = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      aether = gpio.provisionDigitalInputPin(RaspiPin.GPIO_09)
       aether.setDebounce(500)
-      earth = gpio.provisionDigitalInputPin(RaspiPin.GPIO_04)
+      earth = gpio.provisionDigitalInputPin(RaspiPin.GPIO_07)
       earth.setDebounce(500)
-      air = gpio.provisionDigitalInputPin(RaspiPin.GPIO_17)
+      air = gpio.provisionDigitalInputPin(RaspiPin.GPIO_00)
       air.setDebounce(500)
-      water = gpio.provisionDigitalInputPin(RaspiPin.GPIO_27)
+      water = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02)
       water.setDebounce(500)
 
       class SensorListener(button : Button) extends GpioPinListenerDigital {
@@ -52,7 +52,7 @@ class PiActor extends Actor with ActorLogging {
             BoardActor() ! OracleActor.ButtonSelect(button)
             sensorState += button
           } else {
-            sensorState - button
+            sensorState -= button
           }
           println("Sensors: " + sensorState)
         }
