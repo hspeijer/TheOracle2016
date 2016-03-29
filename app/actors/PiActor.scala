@@ -54,7 +54,7 @@ class PiActor extends Actor with ActorLogging {
           } else {
             sensorState - button
           }
-          println(sensorState)
+          println("Sensors: " + sensorState)
         }
       }
       fire.addListener(new SensorListener(Button.Fire))

@@ -174,16 +174,16 @@ public class StreamRpcChannel implements RpcChannel {
         headerContent |= data.length & SIZE_MASK;
         byte[] header = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(headerContent).array();
 
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.info("Sending header " + header.length + " bytes");
-            for (byte b : header) {
-                System.out.format("0x%x ", b);
-             }
-            logger.info("Sending data " + data.length + " bytes");
-            for (byte b : data) {
-                 System.out.format("0x%x ", b);
-              }
-        }
+//        if (logger.isLoggable(Level.FINEST)) {
+//            logger.info("Sending header " + header.length + " bytes");
+//            for (byte b : header) {
+//                System.out.format("0x%x ", b);
+//             }
+//            logger.info("Sending data " + data.length + " bytes");
+//            for (byte b : data) {
+//                 System.out.format("0x%x ", b);
+//              }
+//        }
 
         bos.write(header);
         bos.write(data);
@@ -207,16 +207,16 @@ public class StreamRpcChannel implements RpcChannel {
         byte[] data = new byte[size];
         bis.read(data);
 
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.info("Received header ");
-            for (byte b : header) {
-                    System.out.format("0x%x ", b);
-            }
-            logger.info("Received data ");
-            for (byte b : data) {
-                    System.out.format("0x%x ", b);
-            }
-        }
+//        if (logger.isLoggable(Level.FINEST)) {
+//            logger.info("Received header ");
+//            for (byte b : header) {
+//                    System.out.format("0x%x ", b);
+//            }
+//            logger.info("Received data ");
+//            for (byte b : data) {
+//                    System.out.format("0x%x ", b);
+//            }
+//        }
 
         return RpcMessage.parseFrom(data);
     }
