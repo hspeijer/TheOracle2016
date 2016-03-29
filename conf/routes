@@ -4,7 +4,7 @@
 
 # Home page
 GET     /                    @controllers.Application.index
-#GET     /socket              @controllers.Application.websocket
+GET     /socket              @controllers.Application.websocket
 GET  /media/*file        @controllers.Application.media(file: String)
 
 # Map static resources from the /public folder to the /assets URL path

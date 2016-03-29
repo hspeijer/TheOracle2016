@@ -22,6 +22,9 @@ class BoardActor extends Actor with ActorLogging {
       println("Playing media " + media.name)
       users map { _ ! media}
     }
+    case button:ButtonState => {
+      users map { _ ! button}
+    }
     case pattern:ButtonLight => {
       users map { _ ! pattern}
     }

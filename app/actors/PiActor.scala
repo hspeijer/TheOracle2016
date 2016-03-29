@@ -48,7 +48,7 @@ class PiActor extends Actor with ActorLogging {
 
       class SensorListener(button : Button) extends GpioPinListenerDigital {
         override def handleGpioPinDigitalStateChangeEvent(event: GpioPinDigitalStateChangeEvent) = {
-          if(event.getState.isHigh) {
+          if(event.getState.isLow) {
             BoardActor() ! OracleActor.ButtonSelect(button)
             sensorState += button
           } else {
