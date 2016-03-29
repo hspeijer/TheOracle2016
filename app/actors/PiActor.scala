@@ -1,5 +1,7 @@
 package actors
 
+import actors.OracleActor.Button
+import actors.OracleActor.Button.Button
 import actors.OracleActor.{Button, Oracle, ButtonLight, PlayMedia}
 import akka.actor.{Props, ActorLogging, Actor, ActorRef}
 import akka.event.LoggingReceive
@@ -7,6 +9,7 @@ import com.pi4j.io.gpio._
 import com.pi4j.io.gpio.event.{GpioPinDigitalStateChangeEvent, GpioPinListenerDigital}
 import play.api.libs.json.{JsValue, Json}
 
+import scala.collection.mutable
 import scala.xml.Utility
 
 /**
@@ -19,44 +22,47 @@ import scala.xml.Utility
 class PiActor extends Actor with ActorLogging {
 
   var gpio : GpioController = null
-  var earth : GpioPinDigitalOutput = null
-  var fire : GpioPinDigitalOutput = null
-  var water : GpioPinDigitalOutput = null
-  var air : GpioPinDigitalOutput = null
-  var aether : GpioPinDigitalOutput = null
+  var earth : GpioPinDigitalInput = null
+  var fire : GpioPinDigitalInput = null
+  var water : GpioPinDigitalInput = null
+  var air : GpioPinDigitalInput = null
+  var aether : GpioPinDigitalInput = null
 
-  var input : GpioPinDigitalInput = null
+  val sensorState = mutable.SortedSet[Button]()
 
   override def preStart() = {
 
     try {
       gpio = GpioFactory.getInstance()
-      earth = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_08, "Earth", PinState.LOW)
-      earth.setShutdownOptions(true, PinState.LOW)
 
-      fire = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_09, "Fire", PinState.LOW)
-      fire.setShutdownOptions(true, PinState.LOW)
+      fire = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      fire.setDebounce(500)
+      aether = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      aether.setDebounce(500)
+      earth = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      earth.setDebounce(500)
+      air = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      air.setDebounce(500)
+      water = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
+      water.setDebounce(500)
 
-      water = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_07, "Water", PinState.LOW)
-      water.setShutdownOptions(true, PinState.LOW)
-
-      air = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, "Air", PinState.LOW)
-      air.setShutdownOptions(true, PinState.LOW)
-
-      aether = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, "Aether", PinState.LOW)
-      aether.setShutdownOptions(true, PinState.LOW)
-
-      input = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03)
-      input.setDebounce(500)
-
-      class InputListener extends GpioPinListenerDigital {
+      class SensorListener(button : Button) extends GpioPinListenerDigital {
         override def handleGpioPinDigitalStateChangeEvent(event: GpioPinDigitalStateChangeEvent) = {
-          BoardActor() ! OracleActor.ButtonSelect(Button.Earth)
+          if(event.getState.isHigh) {
+            BoardActor() ! OracleActor.ButtonSelect(button)
+            sensorState += button
+          } else {
+            sensorState - button
+          }
+          println(sensorState)
         }
       }
-      input.addListener(new InputListener())
+      fire.addListener(new SensorListener(Button.Fire))
+      aether.addListener(new SensorListener(Button.Aether))
+      earth.addListener(new SensorListener(Button.Earth))
+      air.addListener(new SensorListener(Button.Air))
+      water.addListener(new SensorListener(Button.Water))
 
-      BoardActor() ! Subscribe
     } catch {
       case error: UnsatisfiedLinkError => println("No GPIO lib loaded")
     }
@@ -69,13 +75,6 @@ class PiActor extends Actor with ActorLogging {
   }
   
   def receive = LoggingReceive {
-    case lights:ButtonLight => {
-      earth.setState(lights.earth)
-      fire.setState(lights.fire)
-      water.setState(lights.water)
-      air.setState(lights.air)
-      aether.setState(lights.aether)
-    }
     case other => log.info("unhandled: " + other)
   }
 }

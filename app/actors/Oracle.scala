@@ -262,13 +262,14 @@ class IdleState(oracle : OracleActor) extends BaseState {
   override def receive(message: Any): Unit = {
     message match  {
       case _:ButtonSelect => {
+        println("Message received " + message)
         currentSchedule.cancel()
         ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
         oracle.currentState = new ChallengeState(oracle)
       }
       case _:PlayMedia => {
         println("Idle Play Media")
-//        ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
+        ButtonAnimatorActor() ! ButtonAnimatorActor.Animate()
         playNext
       }
       case _ => {
@@ -288,8 +289,20 @@ class IdleState(oracle : OracleActor) extends BaseState {
 class ChallengeState(oracle : OracleActor) extends BaseState {
   var oracleType : Oracle.Value = Oracle.random()
 
-  override def receive(message: Any): Unit = {
+  val mediaFiles = OracleActor.getMediaFile(List("Intro"))
 
+  BoardActor() ! PlayMedia(mediaFiles(0).name)
+
+  override def receive(message: Any): Unit = {
+    message match  {
+      case _:ButtonSelect => {
+        oracle.currentState = new IdleState(oracle)
+      }
+      case _:PlayMedia => {
+      }
+      case _ => {
+      }
+    }
   }
 }
 

@@ -51,33 +51,56 @@
 <script>
     var lights = []
     var sensors = []
-    var colours = [{r:0xff, g:0x00, b:0x00}, {r:0xff, g:0x00, b:0xff}, {r:0x00, g:0x00, b:0xff}, {r:0x00, g:0xff, b:0xff}, {r:0x00, g:0xff, b:0x00}]
+    var colours = [{r:0xff, g:0x00, b:0x00}, {r:0xff, g:0xff, b:0x00}, {r:0x00, g:0xff, b:0x00}, {r:0x00, g:0xff, b:0xff}, {r:0x00, g:0x00, b:0xff}]
     var frameCount = 0
+    var fps = 5
 
     // time(frame), light(x), r(y), g, b
     // y = a * sin(b * (x + c))
 
-    function setRed(which, func) {
-
+    function setLightColour(colour, which, func) {
+        return function() {
+            lights[which.call()].colour[colour] = func.call()
+        }
     }
 
     function sin(func) {
-
+        return function() {
+            return Math.sin(func.call())
+        }
     }
 
     function constant(value) {
+        return function() {
+            return value
+        }
 
     }
 
     function scope(id) {
-
+        return function() {
+            return scope[id]
+        }
     }
 
     function multiply(arg1, arg2) {
-
+        return function() {
+            return arg1.call() * arg2.call()
+        }
     }
 
-    var pattern1 = [setRed(scope("light"), sin(multiply(constant(0.5), scope("frame"))))]
+    function add(arg1, arg2) {
+        return function() {
+            return arg1.call() + arg2.call()
+        }
+    }
+
+    function cast(func) {
+        return function() {
+            return Math.floor(func.call())
+        }
+    }
+
 
 
 
@@ -98,6 +121,8 @@
         for(var i = 0; i < 5; i++) {
             lights[i] = {element: document.getElementById('light-' + i)}
             lights[i].brightness = 0;
+            lights[i].colour = {r:0, g:0, b:0};
+
         }
 
         for(var i = 0; i < 5; i++) {
@@ -105,7 +130,7 @@
         }
 
 
-        window.setInterval(animLoop, 1000/60)
+        window.setInterval(animLoop, 1000/fps)
     }
 
     function updateSensors() {
@@ -145,9 +170,9 @@
     function updateLights() {
         for(var i = 0; i < 5; i++) {
             if(sensors[i].value) {
-                lights[i].frameFunction = fader(5,0,100)
+                lights[i].frameFunction = fader(20,0,100)
             } else {
-                lights[i].frameFunction = fader(-1,0,100)
+                lights[i].frameFunction = fader(-10,0,100)
             }
 
             lights[i].brightness = lights[i].frameFunction(lights[i].brightness)
@@ -157,14 +182,100 @@
         }
     }
 
+
+
+    var pattern1 = [
+        setLightColour("r", scope("light"),
+                cast(
+                        multiply(
+                                add(
+                                        sin(
+                                                multiply(
+                                                        constant(0.15),
+                                                        add(
+                                                                scope("frame"),
+                                                                multiply(
+                                                                        scope("light"),
+                                                                        constant(-4)
+                                                                )
+                                                        )
+                                                )
+                                        ),
+                                        constant(1)
+                                ),
+                                constant(127)
+                        )
+                )
+        ),
+        setLightColour("g", scope("light"), cast(multiply(add(sin(multiply(constant(0.015), add(scope("frame"), multiply(scope("light"), constant(4))))),constant(1)), constant(127)))),
+        setLightColour("b", scope("light"), cast(multiply(add(sin(multiply(constant(0.016), add(scope("frame"), multiply(scope("light"), constant(4))))),constant(1)), constant(127))))]
+    var scope = {}
+
     function animLoop() {
         frameCount++
 
         updateSensors()
         updateLights()
 
+//        for(var i = 0 ; i < 5; i++) {
+//            scope = {frame:frameCount, light: i}
+//            evalPattern(pattern1)
+//            lights[i].element.setAttribute("style","background-color:rgb(" + lights[i].colour.r + "," + lights[i].colour.g + "," + lights[i].colour.b +")")
+//        }
 
+        sendPost()
     }
+
+    function evalPattern(funcs) {
+        for(var i = 0; i < funcs.length; i++) {
+            funcs[i].call()
+        }
+    }
+
+    function getDMXFrame() {
+        var buffer = [];
+        for(var i = 0; i < 512; i++) {
+            buffer[i] = 0;
+        }
+
+        buffer[0] = 255
+        buffer[1] = lights[0].colour.r
+        buffer[2] = lights[0].colour.g
+        buffer[3] = lights[0].colour.b
+        buffer[4] = 255
+        buffer[5] = lights[1].colour.r
+        buffer[6] = lights[1].colour.g
+        buffer[7] = lights[1].colour.b
+        buffer[8] = 255
+        buffer[9] = lights[2].colour.r
+        buffer[10] = lights[2].colour.g
+        buffer[11] = lights[2].colour.b
+        buffer[12] = 255
+        buffer[13] = lights[3].colour.r
+        buffer[14] = lights[3].colour.g
+        buffer[15] = lights[3].colour.b
+
+        var result = buffer[0]
+        for(var i = 1; i < 512; i++) {
+            result += "," + buffer[i]
+        }
+
+        return buffer;
+    }
+
+    function sendPost() {
+        var dataField = document.getElementById("data")
+        dataField.setAttribute("value", getDMXFrame())
+        document.getElementById("form").submit()
+    }
+
 </script>
+    <form action="http://192.168.1.12:9090/set_dmx" method="post" target="hiddenFrame" id="form">
+        <input type="hidden" name="u" value="0"/>
+        <input type="hidden" id="data" name="d" value="255,0,0,255,255,255,0,0,255,0,255,0,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"/>
+        <button type="submit"></button>
+    </form>
+    <iframe name="hiddenFrame" class="hide"></iframe>
+
 </body>
 </html>

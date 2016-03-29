@@ -99,7 +99,7 @@
 
         myVideo.play();
 
-        var host = "localhost"
+        var host = "192.168.1.12"
         var socket = new WebSocket("ws://" + host + ":9000/socket")
 
         socket.onmessage = function(event) {
