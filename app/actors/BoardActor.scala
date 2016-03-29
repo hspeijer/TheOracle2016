@@ -1,6 +1,6 @@
 package actors
 
-import actors.OracleActor.{ButtonLight, PlayMedia}
+import actors.OracleActor.{ButtonSelect, ButtonLight, PlayMedia}
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
@@ -22,7 +22,7 @@ class BoardActor extends Actor with ActorLogging {
       println("Playing media " + media.name)
       users map { _ ! media}
     }
-    case button:ButtonState => {
+    case button:ButtonSelect => {
       users map { _ ! button}
     }
     case pattern:ButtonLight => {
