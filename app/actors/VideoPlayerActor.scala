@@ -15,7 +15,7 @@ import sys.process._
  */
 class VideoPlayerActor extends Actor with ActorLogging {
 //  val command = "open /Applications/VLC.app ./public/mp4/"
-  val command = "omxplayer ./public/mpeg2/"
+  val command = "omxplayer --win -500,-280,1800,1300 ./public/mpeg2/"
 
   override def preStart() = {
     BoardActor() ! Subscribe
