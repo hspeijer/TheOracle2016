@@ -1,11 +1,11 @@
 package actors
 
-import actors.OracleActor.{ButtonSelect, ButtonLight, PlayMedia}
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
 import akka.actor.ActorRef
 import akka.actor.Terminated
+import model.{LightState, SensorSelect, PlayMedia}
 import play.api.libs.json.Json
 import play.libs.Akka
 import akka.actor.Props
@@ -22,11 +22,11 @@ class BoardActor extends Actor with ActorLogging {
       println("Playing media " + media.name)
       users map { _ ! media}
     }
-    case button:ButtonSelect => {
-      users map { _ ! button}
+    case sensors:SensorSelect => {
+      users map { _ ! sensors}
     }
-    case pattern:ButtonLight => {
-      users map { _ ! pattern}
+    case lights:LightState => {
+      users map { _ ! lights}
     }
     case Subscribe => {
       users += sender

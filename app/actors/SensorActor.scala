@@ -1,12 +1,11 @@
 package actors
 
-import actors.OracleActor.Button
-import actors.OracleActor.Button.Button
-import actors.OracleActor.{Button, Oracle, ButtonLight, PlayMedia}
 import akka.actor.{Props, ActorLogging, Actor, ActorRef}
 import akka.event.LoggingReceive
 import com.pi4j.io.gpio._
 import com.pi4j.io.gpio.event.{GpioPinDigitalStateChangeEvent, GpioPinListenerDigital}
+import model.Button.Button
+import model.{SensorSelect, Button}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
@@ -19,7 +18,7 @@ import scala.xml.Utility
  * Date: 29/01/16
  * Time: 21:34
  */
-class PiActor extends Actor with ActorLogging {
+class SensorActor extends Actor with ActorLogging {
 
   var gpio : GpioController = null
   var earth : GpioPinDigitalInput = null
@@ -49,11 +48,11 @@ class PiActor extends Actor with ActorLogging {
       class SensorListener(button : Button) extends GpioPinListenerDigital {
         override def handleGpioPinDigitalStateChangeEvent(event: GpioPinDigitalStateChangeEvent) = {
           if(event.getState.isLow) {
-            BoardActor() ! OracleActor.ButtonSelect(button)
             sensorState += button
           } else {
             sensorState -= button
           }
+          BoardActor() ! SensorSelect(sensorState.toSet)
           println("Sensors: " + sensorState)
         }
       }
@@ -79,5 +78,5 @@ class PiActor extends Actor with ActorLogging {
   }
 }
 
-object PiActor {
+object SensorActor {
 }

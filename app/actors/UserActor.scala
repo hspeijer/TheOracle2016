@@ -1,9 +1,9 @@
 package actors
 
-import actors.OracleActor.{Button, ButtonSelect, ButtonLight, PlayMedia}
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
+import model.{LightState, PlayMedia}
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import akka.actor.ActorRef
@@ -28,7 +28,7 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
       val js = Json.obj("type" -> "media", "name" -> media.name, "msg" -> ("Playing " + media.name))
       out ! js
     }
-    case lights:ButtonLight => {
+    case lights:LightState => {
       val js = Json.obj("type" -> "lights", "earth" -> lights.earth, "air" -> lights.air, "water" -> lights.water, "fire" -> lights.fire, "aether" -> lights.aether)
       out ! js
     }

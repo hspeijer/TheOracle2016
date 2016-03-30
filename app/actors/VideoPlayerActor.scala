@@ -1,8 +1,8 @@
 package actors
 
-import actors.OracleActor.{PlayMedia, ButtonLight}
 import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
+import model.PlayMedia
 
 import sys.process._
 
@@ -15,7 +15,7 @@ import sys.process._
  */
 class VideoPlayerActor extends Actor with ActorLogging {
 //  val command = "open /Applications/VLC.app ./public/mp4/"
-  val command = "omxplayer --win -500,-280,1800,1300 ./public/mpeg2/"
+  val command = "omxplayer --win -500,-280,1800,1300 ./public/mp4/"
 
   override def preStart() = {
     BoardActor() ! Subscribe
@@ -23,11 +23,15 @@ class VideoPlayerActor extends Actor with ActorLogging {
 
   def receive = LoggingReceive {
     case media:PlayMedia => {
-      val commandStr = command + media.name + ".mpg"
+      val commandStr = command + media.name + ".mp4"
 
       log.info("Exec " + commandStr)
 
-      commandStr !
+      try {
+        commandStr !
+      } catch {
+        case ex: Throwable => println(ex.getMessage)
+      }
 
     }
     case other => log.info("unhandled: " + other)

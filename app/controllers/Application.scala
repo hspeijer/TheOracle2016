@@ -1,6 +1,5 @@
 package controllers
 
-import actors.OracleActor.{PlayMedia, Tick}
 import play.api._
 import play.api.mvc._
 
@@ -28,8 +27,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   println("Init Application")
   val oracle = system.actorOf(OracleActor.props(system.scheduler))
 
-  system.actorOf(Props[PiActor])
-  system.actorOf(Props[OlaActor])
+  system.actorOf(Props[SensorActor])
+  system.actorOf(Props[DMXActor])
   system.actorOf(Props[VideoPlayerActor])
 
   val UID = "uid"
