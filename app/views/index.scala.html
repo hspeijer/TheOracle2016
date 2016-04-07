@@ -53,6 +53,31 @@
                 width: 92px;
             }
 
+            .light {
+                float: left;
+                height: 50px;
+                width: 50px;
+                border: 1px solid gray;
+                margin: 4px;
+            }
+
+            .sensor {
+                float: left;
+                height: 6px;
+                width: 6px;
+                border: 1px solid gray;
+                margin-left: 26px;
+                margin-right: 26px;
+            }
+
+            .on {
+                background-color: #0F0;
+            }
+
+            .lightbar {
+                clear: both;
+            }
+
             #debug {
                 color: #888;
                 border: 2px solid #222;
@@ -80,15 +105,25 @@
 
         <div class="bottom">
             <div class="button-container">
-                <img src="/assets/images/fire.png" id="fire" onclick="sendButton('fire')">
-                <img src="/assets/images/water.png" id="water" onclick="sendButton('water')">
-                <img src="/assets/images/earth.png" id="earth" onclick="sendButton('earth')">
-                <img src="/assets/images/air.png" id="air" onclick="sendButton('air')">
-                <img src="/assets/images/aether.png" id="aether" onclick="sendButton('aether')">
+                <div class="lightbar">
+                    <div class="light" id="light-0">&nbsp;</div>
+                    <div class="light" id="light-1">&nbsp;</div>
+                    <div class="light" id="light-2">&nbsp;</div>
+                    <div class="light" id="light-3">&nbsp;</div>
+                    <div class="light" id="light-4">&nbsp;</div>
+                </div>
+                <br/>
+                <div class="lightbar">
+                    <div class="sensor" id="sensor-0">&nbsp;</div>
+                    <div class="sensor on" id="sensor-1">&nbsp;</div>
+                    <div class="sensor" id="sensor-2">&nbsp;</div>
+                    <div class="sensor on" id="sensor-3">&nbsp;</div>
+                    <div class="sensor" id="sensor-4">&nbsp;</div>
+                </div>
             </div>
         </div>
 
-        <div id="debug" style="display:none">
+        <div id="debug" style="">
             <p>Session: @uuid</p>
             <p>Starting Oracle</p>
         </div>
@@ -99,7 +134,9 @@
 
         myVideo.play();
 
-        var host = "192.168.1.12"
+//        var host = "192.168.1.12"
+        var host = "localhost"
+
         var socket = new WebSocket("ws://" + host + ":9000/socket")
 
         socket.onmessage = function(event) {

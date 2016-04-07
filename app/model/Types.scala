@@ -1,5 +1,7 @@
 package model
 
+import play.api.libs.json.Json
+
 import scala.util.Random
 
 /**
@@ -27,6 +29,8 @@ object Button extends Enumeration {
 }
 
 case class Light(colour: ColourRGB, effect: Short = 255) {
+  def toJson() = Json.obj("r" -> colour.red, "g" -> colour.green, "b" -> colour.blue) //"{r:" + colour.red + ",g:" + colour.green + ",b:" + colour.blue + "}"
+
   def this() {
     this(ColourRGB(0,0,0), 0)
   }

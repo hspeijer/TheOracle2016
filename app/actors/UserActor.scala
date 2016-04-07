@@ -3,7 +3,7 @@ package actors
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
-import model.{LightState, PlayMedia}
+import model.{SensorSelect, LightState, PlayMedia}
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import akka.actor.ActorRef
@@ -29,7 +29,11 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
       out ! js
     }
     case lights:LightState => {
-      val js = Json.obj("type" -> "lights", "earth" -> lights.earth, "air" -> lights.air, "water" -> lights.water, "fire" -> lights.fire, "aether" -> lights.aether)
+      val js = Json.obj("type" -> "lights", "fire" -> lights.lights(0).toJson(), "aether" -> lights.lights(1).toJson(), "earth" -> lights.lights(2).toJson(), "air" -> lights.lights(3).toJson(), "water" -> lights.lights(4).toJson())
+      out ! js
+    }
+    case sensor:SensorSelect => {
+      val js = Json.obj("type" -> "sensors")
       out ! js
     }
     case js: JsValue => {

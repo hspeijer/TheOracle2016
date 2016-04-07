@@ -53,7 +53,7 @@
     var sensors = []
     var colours = [{r:0xff, g:0x00, b:0x00}, {r:0xff, g:0xff, b:0x00}, {r:0x00, g:0xff, b:0x00}, {r:0x00, g:0xff, b:0xff}, {r:0x00, g:0x00, b:0xff}]
     var frameCount = 0
-    var fps = 5
+    var fps = 60
 
     // time(frame), light(x), r(y), g, b
     // y = a * sin(b * (x + c))
@@ -215,15 +215,15 @@
         frameCount++
 
         updateSensors()
-        updateLights()
+//        updateLights()
 
-//        for(var i = 0 ; i < 5; i++) {
-//            scope = {frame:frameCount, light: i}
-//            evalPattern(pattern1)
-//            lights[i].element.setAttribute("style","background-color:rgb(" + lights[i].colour.r + "," + lights[i].colour.g + "," + lights[i].colour.b +")")
-//        }
+        for(var i = 0 ; i < 5; i++) {
+            scope = {frame:frameCount, light: i}
+            evalPattern(pattern1)
+            lights[i].element.setAttribute("style","background-color:rgb(" + lights[i].colour.r + "," + lights[i].colour.g + "," + lights[i].colour.b +")")
+        }
 
-        sendPost()
+//        sendPost()
     }
 
     function evalPattern(funcs) {
