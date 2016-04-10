@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   specs2 % Test,
-  "com.pi4j" % "pi4j-core" % "1.1-SNAPSHOT",
+  "com.pi4j" % "pi4j-core" % "1.0",
   "com.google.protobuf" % "protobuf-java" % "2.6.1"
 )
 

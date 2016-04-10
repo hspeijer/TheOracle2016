@@ -116,9 +116,9 @@
         <br/>
         <div class="lightbar">
             <div class="sensor" id="sensor-0">&nbsp;</div>
-            <div class="sensor on" id="sensor-1">&nbsp;</div>
+            <div class="sensor" id="sensor-1">&nbsp;</div>
             <div class="sensor" id="sensor-2">&nbsp;</div>
-            <div class="sensor on" id="sensor-3">&nbsp;</div>
+            <div class="sensor" id="sensor-3">&nbsp;</div>
             <div class="sensor" id="sensor-4">&nbsp;</div>
         </div>
     </div>
@@ -131,6 +131,7 @@
 <script>
     var myVideo = document.getElementById("video1");
     var debug = document.getElementById("debug");
+    var socket
     var lights = []
     var sensors = []
 
@@ -139,14 +140,14 @@
         e = e || window.event;
         pressed['key' + e.keyCode] = true;
 
-        updateSensors()
+        sendSensors()
     }
 
     document.onkeyup=function(e){
         e = e || window.event;
         delete pressed['key' + e.keyCode];
 
-        updateSensors()
+        sendSensors()
     }
 
     function init() {
@@ -163,11 +164,10 @@
             sensors[i] = {element:document.getElementById('sensor-' + i)}
         }
 
-
         //        var host = "192.168.1.12"
-        var host = "192.168.1.102s"
-        var socket = new WebSocket("ws://" + host + ":9000/socket")
+        var host = window.location.hostname
 
+        socket = new WebSocket("ws://" + host + ":9000/socket")
         socket.onmessage = function(event) {
             var message = JSON.parse (event.data)
 
@@ -182,18 +182,38 @@
 
             } else if (message.type === "message") {
                 addDebug(message.msg)
-
+            } else if (message.type === "sensors-state") {
+                updateSensors(message.sensors)
             } else if (message.type === "lights") {
                 updateLights(message)
             }
         }
     }
 
-    function updateSensors() {
+    function sendSensors() {
         var keys = ['key81', 'key87', 'key69', 'key82', 'key84']
+        var elements = ['fire', 'aether', 'earth', 'air', 'water']
+        var sensors = {}
 
         for(var i = 0; i < 5; i++) {
-            sensors[i].value = pressed[keys[i]]
+            if(pressed[keys[i]]) {
+                sensors[elements[i]] = true
+            }
+        }
+
+        var debug = JSON.stringify(sensors)
+        socket.send(JSON.stringify({
+            msg: 'Sensor state ' + debug,
+            type : "sensor-state",
+            sensors: sensors
+        }));
+    }
+
+    function updateSensors(sensorValues) {
+        var elements = ['fire','aether','earth', 'air', 'water']
+
+        for(var i = 0; i < 5; i++) {
+            sensors[i].value = sensorValues[elements[i]]
             if(sensors[i].value) {
                 sensors[i].element.className = 'sensor on'
             } else {

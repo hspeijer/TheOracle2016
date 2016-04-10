@@ -3,11 +3,12 @@ package actors
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
-import model.{SensorSelect, LightState, PlayMedia}
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json
+import model.Button._
+import model.{Button, SensorSelect, LightState, PlayMedia}
+import play.api.libs.json.{JsSuccess, JsError, JsValue, Json}
 import akka.actor.ActorRef
 import akka.actor.Props
+import scala.collection.mutable
 import scala.xml.Utility
 
 
@@ -33,11 +34,17 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
       out ! js
     }
     case sensor:SensorSelect => {
-      val js = Json.obj("type" -> "sensors")
+      val js = Json.obj("type" -> "sensors-state" , "sensors" -> Json.obj(
+        "fire" -> sensor.sensors.contains(Button.Fire),
+        "aether" -> sensor.sensors.contains(Button.Aether),
+        "earth" -> sensor.sensors.contains(Button.Earth),
+        "air" -> sensor.sensors.contains(Button.Air),
+        "water" -> sensor.sensors.contains(Button.Water)
+      ))
       out ! js
     }
     case js: JsValue => {
-      (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ ) }
+//      (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ ) }
 //      if(js \ "type" == "button-click") {
 //        js \ "button" match {
 //          case "air" => BoardActor() ! ButtonSelect(Button.Air)
@@ -47,6 +54,32 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
 //          case "aether" => BoardActor() ! ButtonSelect(Button.Aether)
 //        }
 //      }
+      if(((js \ "type").as[String]).equals("sensor-state")) {
+        var sensorState = mutable.SortedSet[Button]()
+        (js \ "sensors" \ "fire").validate[Boolean] match {
+          case s: JsSuccess[String] => sensorState += Button.Fire
+          case e: JsError => {}
+        }
+        (js \ "sensors" \ "aether").validate[Boolean] match {
+          case s: JsSuccess[String] => sensorState += Button.Aether
+          case e: JsError => {}
+        }
+        (js \ "sensors" \ "earth").validate[Boolean] match {
+          case s: JsSuccess[String] => sensorState += Button.Earth
+          case e: JsError => {}
+        }
+        (js \ "sensors" \ "air").validate[Boolean] match {
+          case s: JsSuccess[String] => sensorState += Button.Air
+          case e: JsError => {}
+        }
+        (js \ "sensors" \ "water").validate[Boolean] match {
+          case s: JsSuccess[String] => sensorState += Button.Water
+          case e: JsError => {}
+        }
+        board ! SensorSelect(sensorState.toSet)
+      } else {
+        (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ )}
+      }
     }
     case other => log.error("unhandled: " + other)
   }

@@ -61,10 +61,10 @@ class IdleState(oracle : OracleActor) extends BaseState {
   override def receive(message: Any): Unit = {
     message match  {
       case _:SensorSelect => {
-        println("Message received " + message)
-        currentSchedule.cancel()
-        ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
-        oracle.currentState = new ChallengeState(oracle)
+//        println("Message received " + message)
+//        currentSchedule.cancel()
+//        ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
+//        oracle.currentState = new ChallengeState(oracle)
       }
       case _:PlayMedia => {
         println("Idle Play Media")
