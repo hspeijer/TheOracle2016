@@ -40,12 +40,12 @@ case class Light(colour: ColourRGB, effect: Short = 255) {
 case class ColourRGB(red: Short, green: Short, blue: Short)
 
 object ElementColours {
-  val colours = {
-    Button.Fire -> ColourRGB(255,0,0)
-    Button.Aether -> ColourRGB(255,255,0)
-    Button.Earth -> ColourRGB(0,255,0)
-    Button.Air -> ColourRGB(0,255,255)
+  val colours = List(
+    Button.Fire -> ColourRGB(255,0,0),
+    Button.Aether -> ColourRGB(255,255,0),
+    Button.Earth -> ColourRGB(0,255,0),
+    Button.Air -> ColourRGB(0,255,255),
     Button.Water -> ColourRGB(0,0,255)
-  }
+  )
 }
 

@@ -25,8 +25,8 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
       out ! js
     }
     case media:PlayMedia => {
-      println("User Received play media " + media.name)
-      val js = Json.obj("type" -> "media", "name" -> media.name, "msg" -> ("Playing " + media.name))
+      println("User Received play media " + media.media.name)
+      val js = Json.obj("type" -> "media", "name" -> media.media.name, "msg" -> ("Playing " + media.media.name))
       out ! js
     }
     case lights:LightState => {
@@ -81,7 +81,7 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
         (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ )}
       }
     }
-    case other => log.error("unhandled: " + other)
+    case other => {}
   }
 }
 

@@ -1,148 +1,178 @@
 @(uuid: String)
-<html>
-    <head>
-        <style>
-            html, body {
-                font-family: sans-serif;
-                margin: 0;
-                height: 100%;
-                background: black;
-                overflow-x: hidden;
-            }
+                              <html>
+<head>
+    <style>
+        html, body {
+            font-family: sans-serif;
+            margin: 0;
+            height: 100%;
+            background: black;
+            overflow-x: hidden;
+        }
 
-            video {
-                text-align: center;
-                height: 100%;
-                /*border: 1px solid red;*/
-                margin-left: auto;
-                margin-right: auto;
-                display: block;
-                z-index : 1;
-            }
+        video {
+            text-align: center;
+            height: 100%;
+            /*border: 1px solid red;*/
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            z-index : 1;
+        }
 
-            .container {
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                bottom: 0px;
-                right: 0px;
-                margin: 0px;
-                /*border: 4px solid blue;*/
-            }
+        .container {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            margin: 0px;
+            /*border: 4px solid blue;*/
+        }
 
-            .bottom {
-                z-index: 10;
-                position: absolute;
-                width: 100%;
-                /*border: 1px solid green;*/
-                bottom: 10px;
-                background: transparent;
-            }
+        .bottom {
+            z-index: 10;
+            position: absolute;
+            width: 100%;
+            /*border: 1px solid green;*/
+            bottom: 10px;
+            background: transparent;
+        }
 
-            .button-container {
-                border: 2px solid #222;
-                border-radius: 10px;
-                width: 480px;
-                margin: auto;
-                display: block;
-                text-align: center;
-                margin-bottom: 10px;
-            }
+        .button-container {
+            border: 2px solid #222;
+            border-radius: 10px;
+            width: 480px;
+            height: 105px;
+            margin: auto;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
 
-            .button-container img {
-                width: 92px;
-            }
+        .button-container img {
+            width: 92px;
+        }
 
-            .light {
-                float: left;
-                height: 50px;
-                width: 50px;
-                border: 1px solid gray;
-                margin: 4px;
-            }
+        .light {
+            float: left;
+            height: 84px;
+            width: 84px;
+            border: 1px solid gray;
+            border-radius: 45px;
+            margin: 4px;
+        }
 
-            .sensor {
-                float: left;
-                height: 6px;
-                width: 6px;
-                border: 1px solid gray;
-                margin-left: 26px;
-                margin-right: 26px;
-            }
+        .sensor {
+            float: left;
+            height: 6px;
+            width: 6px;
+            border: 1px solid gray;
+            margin-left: 43px;
+            margin-right: 43px;
+        }
 
-            .on {
-                background-color: #0F0;
-            }
+        .on {
+            background-color: #0F0;
+        }
 
-            .lightbar {
-                clear: both;
-            }
+        .lightbar {
+            clear: both;
+        }
 
-            #debug {
-                color: #888;
-                border: 2px solid #222;
-                font-size: 10pt;
-                position: absolute;
-                z-index : auto ;
-                height: 200px;
-                width: 400px;
-                bottom: 20px;
-                overflow-y: hidden;
-                left: 10px;
-            }
+        #debug {
+            color: #888;
+            border: 2px solid #222;
+            font-size: 10pt;
+            position: absolute;
+            z-index : auto ;
+            height: 200px;
+            width: 400px;
+            bottom: 20px;
+            overflow-y: hidden;
+            left: 10px;
+        }
 
-            #debug p {
-                line-height: 0.2em;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <video id="video1" class="video">
-            </video>
+        #debug p {
+            line-height: 0.2em;
+        }
+    </style>
+</head>
+<body onload="init()">
+<div class="container">
+    <video id="video1" class="video">
+    </video>
 
+</div>
+
+<div class="bottom">
+    <div class="button-container">
+        <div class="lightbar">
+            <div class="light" id="light-0">&nbsp;</div>
+            <div class="light" id="light-1">&nbsp;</div>
+            <div class="light" id="light-2">&nbsp;</div>
+            <div class="light" id="light-3">&nbsp;</div>
+            <div class="light" id="light-4">&nbsp;</div>
         </div>
-
-        <div class="bottom">
-            <div class="button-container">
-                <div class="lightbar">
-                    <div class="light" id="light-0">&nbsp;</div>
-                    <div class="light" id="light-1">&nbsp;</div>
-                    <div class="light" id="light-2">&nbsp;</div>
-                    <div class="light" id="light-3">&nbsp;</div>
-                    <div class="light" id="light-4">&nbsp;</div>
-                </div>
-                <br/>
-                <div class="lightbar">
-                    <div class="sensor" id="sensor-0">&nbsp;</div>
-                    <div class="sensor on" id="sensor-1">&nbsp;</div>
-                    <div class="sensor" id="sensor-2">&nbsp;</div>
-                    <div class="sensor on" id="sensor-3">&nbsp;</div>
-                    <div class="sensor" id="sensor-4">&nbsp;</div>
-                </div>
-            </div>
+        <br/>
+        <div class="lightbar">
+            <div class="sensor" id="sensor-0">&nbsp;</div>
+            <div class="sensor" id="sensor-1">&nbsp;</div>
+            <div class="sensor" id="sensor-2">&nbsp;</div>
+            <div class="sensor" id="sensor-3">&nbsp;</div>
+            <div class="sensor" id="sensor-4">&nbsp;</div>
         </div>
+    </div>
+</div>
 
-        <div id="debug" style="">
-            <p>Session: @uuid</p>
-            <p>Starting Oracle</p>
-        </div>
+<div id="debug" style="">
+    <p>Starting Oracle</p>
+</div>
 
-        <script>
-        var myVideo = document.getElementById("video1");
-        var debug = document.getElementById("debug");
+<script>
+    var myVideo = document.getElementById("video1");
+    var debug = document.getElementById("debug");
+    var socket
+    var lights = []
+    var sensors = []
 
-        myVideo.play();
+    var pressed={};
+    document.onkeydown=function(e){
+        e = e || window.event;
+        pressed['key' + e.keyCode] = true;
 
-//        var host = "192.168.1.12"
-        var host = "localhost"
+        sendSensors()
+    }
 
-        var socket = new WebSocket("ws://" + host + ":9000/socket")
+    document.onkeyup=function(e){
+        e = e || window.event;
+        delete pressed['key' + e.keyCode];
 
+        sendSensors()
+    }
+
+    function init() {
+        console.log("Init lights!")
+
+        for(var i = 0; i < 5; i++) {
+            lights[i] = {element: document.getElementById('light-' + i)}
+            lights[i].brightness = 0;
+            lights[i].colour = {r:0, g:0, b:0};
+
+        }
+
+        for(var i = 0; i < 5; i++) {
+            sensors[i] = {element:document.getElementById('sensor-' + i)}
+        }
+
+        //        var host = "192.168.1.12"
+        var host = window.location.hostname
+
+        socket = new WebSocket("ws://" + host + ":9000/socket")
         socket.onmessage = function(event) {
             var message = JSON.parse (event.data)
 
-            console.log(message);
+//        console.log(message);
 
             if(message.type === "media") {
                 var url = "/assets/mp4/" + message.name + ".mp4";
@@ -153,31 +183,72 @@
 
             } else if (message.type === "message") {
                 addDebug(message.msg)
-
+            } else if (message.type === "sensors-state") {
+                updateSensors(message.sensors)
             } else if (message.type === "lights") {
-                document.getElementById ( "fire" ).src = "/assets/images/fire" + ( message.fire ? "" : "-off" ) + ".png"
-                document.getElementById ( "earth" ).src = "/assets/images/earth" + ( message.earth ? "" : "-off" ) + ".png"
-                document.getElementById ( "water" ).src = "/assets/images/water" + ( message.water ? "" : "-off" ) + ".png"
-                document.getElementById ( "air" ).src = "/assets/images/air" + ( message.air ? "" : "-off" ) + ".png"
-                document.getElementById ( "aether" ).src = "/assets/images/aether" + ( message.aether ? "" : "-off" ) + ".png"
+                updateLights(message)
+            }
+        }
+    }
+
+    function sendSensors() {
+        var keys = ['key81', 'key87', 'key69', 'key82', 'key84']
+        var elements = ['fire', 'aether', 'earth', 'air', 'water']
+        var sensors = {}
+
+        for(var i = 0; i < 5; i++) {
+            if(pressed[keys[i]]) {
+                sensors[elements[i]] = true
             }
         }
 
-        function sendButton(button) {
-            socket.send(JSON.stringify({
-                msg: button,
-                type : "button-click",
-                button: button
-            }));
-        }
+        var debug = JSON.stringify(sensors)
+        socket.send(JSON.stringify({
+            msg: 'Sensor state ' + debug,
+            type : "sensor-state",
+            sensors: sensors
+        }));
+    }
 
-        function addDebug(message) {
-            var messageNode = document.createElement("p")
-            messageNode.appendChild(document.createTextNode(message))
-            debug.appendChild(messageNode)
-            debug.scrollTop = debug.scrollHeight;
-        }
+    function updateSensors(sensorValues) {
+        var elements = ['fire','aether','earth', 'air', 'water']
 
-        </script>
-    </body>
+        for(var i = 0; i < 5; i++) {
+            sensors[i].value = sensorValues[elements[i]]
+            if(sensors[i].value) {
+                sensors[i].element.className = 'sensor on'
+            } else {
+                sensors[i].element.className = 'sensor'
+            }
+        }
+    }
+
+    function updateLights(message) {
+        var elements = ['fire','aether','earth', 'air', 'water']
+        for(var i = 0; i < 5; i++) {
+            lights[i].colour.r = message[elements[i]].r
+            lights[i].colour.g = message[elements[i]].g
+            lights[i].colour.b = message[elements[i]].b
+
+            lights[i].element.setAttribute("style","background-color:rgb(" + lights[i].colour.r + "," + lights[i].colour.g + "," + lights[i].colour.b +")")
+        }
+    }
+
+    function sendButton(button) {
+        socket.send(JSON.stringify({
+            msg: button,
+            type : "button-click",
+            button: button
+        }));
+    }
+
+    function addDebug(message) {
+        var messageNode = document.createElement("p")
+        messageNode.appendChild(document.createTextNode(message))
+        debug.appendChild(messageNode)
+        debug.scrollTop = debug.scrollHeight;
+    }
+
+</script>
+</body>
 </html>

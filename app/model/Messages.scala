@@ -10,9 +10,10 @@ import model.Button.Button
  * Time: 06:42
  */
 
-case class PlayMedia(name:String)
-case class MediaComplete(name:String)
+case class PlayMedia(media:MediaFile)
+case class MediaComplete(media: MediaFile)
 case class SensorSelect(sensors: Set[Button])
+case class SensorTrigger(button: Button)
 case class LightState(lights: Seq[Light]) {
   def this() = {
     this(new Array[Light](5))
@@ -33,3 +34,4 @@ case class LightState(lights: Seq[Light]) {
     lights(4).colour != ColourRGB(0, 0, 0)
   }
 }
+case class Timeout()

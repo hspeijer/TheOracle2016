@@ -1,9 +1,10 @@
 package actors
 
-import actors.ButtonAnimatorActor.{Animate, Tick, Pulse, Stop}
+import actors.ButtonAnimatorActor.{Animate, Tick, Stop}
 import akka.actor.{Cancellable, ActorLogging, Actor, Props}
 import akka.event.LoggingReceive
-import model.{LightState, ColourRGB, Light}
+import model.Button.Button
+import model._
 import play.libs.Akka
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -18,21 +19,108 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 class ButtonAnimatorActor extends Actor with ActorLogging {
 
-  val fps = 5
+  val fps = 24
+  var pulseSchedule : Cancellable = null
+  var currentAnimation : Animation = new ColourCycle()
+  var currentFrame : Seq[Light] = emptyFrame()
+  var currentSensors : Set[Button] = Set[Button]()
+  var frameCount = 0
+
+  def emptyFrame() = List(new Light(), new Light(), new Light(), new Light(), new Light()).toSeq
 
   abstract class Animation {
      def renderFrame(frame : Long, currentFrame: Seq[Light]) : Seq[Light]
   }
 
-  class FadeIn(lightIndex : Short, startFrame: Long, duration: Short, colour : ColourRGB) extends Animation {
-    override def renderFrame(frame: Long, currentFrame: Seq[Light]): Seq[Light] = {
-      currentFrame
-    }
-  }
+  class SensorTriggerAnimation extends Animation {
 
-  class FadeOut(lightIndex : Short, startFrame: Long, duration: Short) extends Animation {
+    currentFrame = emptyFrame()
+
+    val sensorSelect = mutable.Map(
+      Button.Fire -> 0,
+      Button.Aether -> 0,
+      Button.Earth -> 0,
+      Button.Air -> 0,
+      Button.Water -> 0
+    )
+
     override def renderFrame(frame: Long, currentFrame: Seq[Light]): Seq[Light] = {
-      currentFrame
+
+      for(item <- sensorSelect) {
+        if(currentSensors.contains(item._1)) {
+          sensorSelect.update(item._1, minMax(0, 100, item._2 + 2))
+        } else {
+          sensorSelect.update(item._1, minMax(0, 100, item._2 - 3))
+        }
+      }
+
+      if(numValues() == 1 && (sensorSelect.getOrElse(maxSelect(),0) >= 100)) {
+        println("Trigger! " + maxSelect())
+        BoardActor() ! SensorTrigger(maxSelect())
+        for(item <- sensorSelect) {
+          sensorSelect.update(item._1, 0)
+        }
+      }
+      def wave(frame: Long, frequency : Double, offset: Int) : Short = {
+        //        setLightColour("g", scope("light"), cast(multiply(add(sin(multiply(constant(0.015), add(scope("frame"), multiply(scope("light"), constant(4))))),constant(1)), constant(127)))),
+        ((math.sin((frequency * (frame + offset))) + 1.0) * 127).toShort
+      }
+      val result = mutable.MutableList[Light]()
+      var offset = 0
+      for(element <- ElementColours.colours) {
+        if(sensorSelect(element._1) > 0) {
+          result += Light(ColourRGB(
+            (sensorSelect(element._1) / 100.0 * element._2.red).toShort,
+            (sensorSelect(element._1) / 100.0 * element._2.green).toShort,
+            (sensorSelect(element._1) / 100.0 * element._2.blue).toShort
+          ), 255)
+        } else {
+          val brightness = ((math.sin((0.03 * (frame - 5 * offset))) + 1.0) * 127).toShort
+          result += Light(ColourRGB(
+            (brightness / 255.0 * element._2.red).toShort,
+            (brightness / 255.0 * element._2.green).toShort,
+            (brightness / 255.0 * element._2.blue).toShort
+          ), 255)
+
+        }
+
+        offset += 1
+      }
+
+      result
+    }
+
+    def minMax(min: Int, max: Int, value: Int) = {
+      if(value < min) {
+        min
+      } else if(value > max) {
+        max
+      } else {
+        value
+      }
+    }
+
+    def maxSelect() : Button = {
+      var result : (Button.Button, Int) = null
+
+      for(compare <- sensorSelect.iterator) {
+        if(result == null) {
+          result = compare
+        } else if(compare._2 > result._2) {
+          result = compare
+        }
+      }
+      result._1
+    }
+
+    def numValues() : Int = {
+      var result = 0
+      for(triggerValue <- sensorSelect.values) {
+        if(triggerValue > 0) {
+          result += 1
+        }
+      }
+      result
     }
   }
 
@@ -60,12 +148,35 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
     }
   }
 
-  var pulseSchedule : Cancellable = null
+  class Pulse(button: Button) extends Animation {
 
+    val buttons = List(Button.Fire, Button.Aether, Button.Earth, Button.Air, Button.Water)
+    val buttonIndex = buttons.indexOf(button)
 
-  var currentAnimation = new ColourCycle()
-  var currentFrame = (new Array[Light](5)).toSeq
-  var frameCount = 0
+    override def renderFrame(frame: Long, currentFrame: Seq[Light]): Seq[Light] = {
+      val result = mutable.MutableList[Light]()
+
+      def wave(frame: Long, frequency : Double, offset: Int) : Short = {
+        (32 + (math.sin((frequency * (frame + offset))) + 1.0) * 112).toShort
+      }
+
+      for(i <- 0 until 5) {
+        if(i == buttonIndex) {
+          val targetColour = ElementColours.colours(buttonIndex)_2
+          var brightness = wave(frame, 0.05, 0)
+           result += new Light(ColourRGB(
+             (brightness/255.0 * targetColour.red).toShort ,
+             (brightness/255.0 * targetColour.green).toShort ,
+             (brightness/255.0 * targetColour.blue).toShort
+           ))
+        } else {
+          result += new Light()
+        }
+      }
+
+      result
+    }
+  }
 
   def tick(): Unit = {
 //    if(!currentAnimator.finished) {
@@ -90,11 +201,18 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
   }
 
   def receive = LoggingReceive {
-    case _: Animate => {
-      println("Starting animation")
+    case animation: Animate => {
+      BoardActor() ! Message("0", "Starting animation " + animation.name)
       if(pulseSchedule != null) {
         pulseSchedule.cancel()
       }
+
+      animation.name match {
+        case "Colours" => currentAnimation = new ColourCycle()
+        case "SensorSelect" => currentAnimation = new SensorTriggerAnimation()
+        case "Pulse" => currentAnimation = new Pulse(animation.button)
+      }
+
       pulseSchedule = Akka.system().scheduler.schedule(0 seconds, 1000/fps millisecond, ButtonAnimatorActor(), Tick())
     }
     case _: Stop => {
@@ -102,6 +220,9 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
       BoardActor() ! LightState
     }
     case _: Tick => tick()
+    case sensors:SensorSelect => {
+      currentSensors = sensors.sensors
+    }
     case other => log.info("unhandled: " + other)
   }
 
@@ -113,8 +234,7 @@ object ButtonAnimatorActor {
   lazy val animator = Akka.system().actorOf(Props[ButtonAnimatorActor])
   def apply() = animator
 
-  case class Animate()
+  case class Animate(name: String, button: Button)
   case class Stop()
-  case class Pulse()
   case class Tick()
 }

@@ -2,7 +2,10 @@ package actors
 
 import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
-import model.PlayMedia
+import model.{MediaComplete, PlayMedia}
+import play.libs.Akka
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import sys.process._
 
@@ -15,7 +18,7 @@ import sys.process._
  */
 class VideoPlayerActor extends Actor with ActorLogging {
 //  val command = "open /Applications/VLC.app ./public/mp4/"
-  val command = "omxplayer --win -500,-280,1800,1300 ./public/mp4/"
+  val command = "omxplayer /home/pi/TheOracleMedia/h264/"
 
   override def preStart() = {
     BoardActor() ! Subscribe
@@ -23,8 +26,9 @@ class VideoPlayerActor extends Actor with ActorLogging {
 
   def receive = LoggingReceive {
     case media:PlayMedia => {
-      val commandStr = command + media.name + ".mp4"
+      val commandStr = command + media.media.name + ".m4v"
 
+      Akka.system().scheduler.scheduleOnce(media.media.duration seconds, BoardActor(), MediaComplete(media.media))
       log.info("Exec " + commandStr)
 
       try {
