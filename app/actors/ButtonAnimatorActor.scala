@@ -61,10 +61,7 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
           sensorSelect.update(item._1, 0)
         }
       }
-      def wave(frame: Long, frequency : Double, offset: Int) : Short = {
-        //        setLightColour("g", scope("light"), cast(multiply(add(sin(multiply(constant(0.015), add(scope("frame"), multiply(scope("light"), constant(4))))),constant(1)), constant(127)))),
-        ((math.sin((frequency * (frame + offset))) + 1.0) * 127).toShort
-      }
+
       val result = mutable.MutableList[Light]()
       var offset = 0
       for(element <- ElementColours.colours) {
@@ -77,9 +74,9 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
         } else {
           val brightness = ((math.sin((0.03 * (frame - 5 * offset))) + 1.0) * 127).toShort
           result += Light(ColourRGB(
-            (brightness / 255.0 * element._2.red).toShort,
-            (brightness / 255.0 * element._2.green).toShort,
-            (brightness / 255.0 * element._2.blue).toShort
+            (brightness / 2500.0 * element._2.red).toShort,
+            (brightness / 2500.0 * element._2.green).toShort,
+            (brightness / 2500.0 * element._2.blue).toShort
           ), 255)
 
         }
@@ -136,9 +133,9 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
       var offset = 0
       for(light <- currentFrame) {
         result += Light(ColourRGB(
-          wave(frame, 0.15, offset * 5),
-          wave(frame, 0.14, offset * 5),
-          wave(frame, 0.17, offset * 5)
+          wave(frame, 0.03, offset * 5),
+          wave(frame, 0.032, offset * 5),
+          wave(frame, 0.027, offset * 5)
         ), 255)
 
         offset += 1
@@ -165,9 +162,9 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
           val targetColour = ElementColours.colours(buttonIndex)_2
           var brightness = wave(frame, 0.05, 0)
            result += new Light(ColourRGB(
-             (brightness/255.0 * targetColour.red).toShort ,
-             (brightness/255.0 * targetColour.green).toShort ,
-             (brightness/255.0 * targetColour.blue).toShort
+             (brightness/256.0 * targetColour.red).toShort ,
+             (brightness/256.0 * targetColour.green).toShort ,
+             (brightness/256.0 * targetColour.blue).toShort
            ))
         } else {
           result += new Light()
