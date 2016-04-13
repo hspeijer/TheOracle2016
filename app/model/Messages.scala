@@ -14,6 +14,7 @@ case class PlayMedia(media:MediaFile)
 case class MediaComplete(media: MediaFile)
 case class SensorSelect(sensors: Set[Button])
 case class SensorTrigger(button: Button)
+case class DoSmoke(duration: Int, intensity: Short)
 case class LightState(lights: Seq[Light]) {
   def this() = {
     this(new Array[Light](5))

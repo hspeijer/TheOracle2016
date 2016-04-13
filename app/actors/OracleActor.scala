@@ -89,9 +89,9 @@ class IdleState(oracle : OracleActor) extends BaseState {
 
   def switchState() = {
     currentSchedule.cancel()
+    BoardActor() ! DoSmoke(500, 127)
     oracle.scheduler.scheduleOnce(2 seconds, new Runnable {
       override def run(): Unit = {
-        //Smoke?
         ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
         oracle.currentState = new ChallengeState(oracle)
       }
@@ -151,22 +151,18 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
   }
 
   def setTimeOut() {
-    if(!challengedAgain) {
-      currentSchedule = oracle.scheduler.scheduleOnce(30 seconds, new Runnable {
-        override def run(): Unit = {
+    currentSchedule = oracle.scheduler.scheduleOnce(30 seconds, new Runnable {
+      override def run(): Unit = {
+        if (!challengedAgain) {
           challengedAgain = true
           val answers = MediaFile.getMediaFile(List("ChallengeAgain", oracleType.toString))
           BoardActor() ! PlayMedia(answers(Random.nextInt(answers.size)))
           setTimeOut()
-        }
-      })
-    } else {
-      currentSchedule = oracle.scheduler.scheduleOnce(60 seconds, new Runnable {
-        override def run(): Unit = {
+        } else {
           oracle.currentState = new IdleState(oracle)
         }
-      })
-    }
+      }
+    })
   }
 }
 

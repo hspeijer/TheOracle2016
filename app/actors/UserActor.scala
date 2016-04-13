@@ -3,8 +3,9 @@ package actors
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
+import model.Button
 import model.Button._
-import model.{Button, SensorSelect, LightState, PlayMedia}
+import model._
 import play.api.libs.json.{JsSuccess, JsError, JsValue, Json}
 import akka.actor.ActorRef
 import akka.actor.Props
@@ -41,6 +42,10 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
         "air" -> sensor.sensors.contains(Button.Air),
         "water" -> sensor.sensors.contains(Button.Water)
       ))
+      out ! js
+    }
+    case smoke:DoSmoke => {
+      val js = Json.obj("type" -> "smoke", "duration" -> smoke.duration, "intensity" -> smoke.intensity , "msg" -> ("Smoke it! "))
       out ! js
     }
     case js: JsValue => {

@@ -2,8 +2,12 @@ package actors
 
 import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
-import model.{LightState, Light}
+import model.{DoSmoke, LightState, Light}
 import ola.OlaClient
+import play.libs.Akka
+
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Copyright 2014 mindsteps BV
@@ -16,6 +20,7 @@ class DMXActor extends Actor with ActorLogging {
   val UNIVERSE_ID: Short = 0
 
   var client: OlaClient = null
+  var smoking : Short = 0
 
   override def preStart() = {
     try {
@@ -31,6 +36,12 @@ class DMXActor extends Actor with ActorLogging {
     case lights: LightState => {
       sendDmx(lights.lights)
     }
+    case smoke: DoSmoke => {
+      println("Smoke! " + smoke)
+      Akka.system().scheduler.scheduleOnce(smoke.duration millisecond, new Runnable {
+        override def run(): Unit = {smoking = 0}
+      })
+    }
   }
 
   def sendDmx(lights : Seq[Light]) = {
@@ -45,6 +56,8 @@ class DMXActor extends Actor with ActorLogging {
 
        offset += 4
      }
+
+    frame(offset) = smoking
 
     if(client != null) {
       client.sendDmx(UNIVERSE_ID, frame)

@@ -34,6 +34,9 @@ class BoardActor extends Actor with ActorLogging {
     case lights:LightState => {
       users map { _ ! lights}
     }
+    case smoke:DoSmoke => {
+      users map { _ ! smoke}
+    }
     case Subscribe => {
       users += sender
       context watch sender
