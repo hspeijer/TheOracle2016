@@ -38,6 +38,8 @@ class DMXActor extends Actor with ActorLogging {
     }
     case smoke: DoSmoke => {
       println("Smoke! " + smoke)
+      smoking = smoke.intensity
+
       Akka.system().scheduler.scheduleOnce(smoke.duration millisecond, new Runnable {
         override def run(): Unit = {smoking = 0}
       })

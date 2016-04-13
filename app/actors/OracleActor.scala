@@ -89,7 +89,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
 
   def switchState() = {
     currentSchedule.cancel()
-    BoardActor() ! DoSmoke(500, 127)
+    BoardActor() ! DoSmoke(2000, 127)
     oracle.scheduler.scheduleOnce(2 seconds, new Runnable {
       override def run(): Unit = {
         ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
