@@ -101,7 +101,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
   def playNext(): Unit = {
     val currentMedia = introFiles(Random.nextInt(introFiles.size))
     //schedule playtime video + 10 seconds + random 0-60 seconds
-    currentSchedule = oracle.scheduler.scheduleOnce(10 + Random.nextInt(60) seconds, BoardActor(), PlayMedia(currentMedia))
+    currentSchedule = oracle.scheduler.scheduleOnce(10 + Random.nextInt(180) seconds, BoardActor(), PlayMedia(currentMedia))
   }
 }
 
