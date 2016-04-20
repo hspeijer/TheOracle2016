@@ -210,6 +210,7 @@
         }
     }
 
+    var lastSensors = ""
     function sendSensors() {
         var keys = ['key81', 'key87', 'key69', 'key82', 'key84']
         var elements = ['fire', 'aether', 'earth', 'air', 'water']
@@ -221,12 +222,15 @@
             }
         }
 
-        var debug = JSON.stringify(sensors)
-        socket.send(JSON.stringify({
-            msg: 'Sensor state ' + debug,
-            type : "sensor-state",
-            sensors: sensors
-        }));
+        var sensorString = JSON.stringify(sensors)
+        if(lastSensors != sensorString) {
+            socket.send(JSON.stringify ( {
+                msg : 'Sensor state ' + sensorString,
+                type : "sensor-state",
+                sensors : sensors
+            }))
+            lastSensors = sensorString;
+        }
     }
 
     function updateSensors(sensorValues) {
@@ -260,15 +264,6 @@
         setTimeout(function() {
             element.setAttribute("style","background-color:black")
         }, message.duration)
-    }
-
-
-    function sendButton(button) {
-        socket.send(JSON.stringify({
-            msg: button,
-            type : "button-click",
-            button: button
-        }));
     }
 
     function addDebug(message) {

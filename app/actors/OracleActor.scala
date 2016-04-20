@@ -1,11 +1,12 @@
 package actors
 
 import akka.actor._
+import model.Button.Button
 import model._
 import play.api.libs.json.{JsObject, Json}
 
 import play.libs.Akka
-import scala.collection.SortedMap
+import scala.collection.{mutable, SortedMap}
 import scala.language.postfixOps
 import scala.util.Random
 import scala.concurrent.duration._
@@ -55,6 +56,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
   val introFiles = MediaFile.getMediaFile(List("Intro"))
   var currentSchedule : Cancellable = null
   var switchingState = false
+  var lastMedia : MediaFile = null
 
   playNext
 
@@ -90,7 +92,7 @@ class IdleState(oracle : OracleActor) extends BaseState {
   def switchState() = {
     currentSchedule.cancel()
     BoardActor() ! DoSmoke(2000, 127)
-    oracle.scheduler.scheduleOnce(2 seconds, new Runnable {
+    oracle.scheduler.scheduleOnce(1 seconds, new Runnable {
       override def run(): Unit = {
         ButtonAnimatorActor() ! ButtonAnimatorActor.Stop()
         oracle.currentState = new ChallengeState(oracle)
@@ -99,7 +101,13 @@ class IdleState(oracle : OracleActor) extends BaseState {
   }
 
   def playNext(): Unit = {
-    val currentMedia = introFiles(Random.nextInt(introFiles.size))
+    var currentMedia = introFiles(Random.nextInt(introFiles.size))
+
+    while(currentMedia.equals(lastMedia)) {
+      currentMedia = introFiles(Random.nextInt(introFiles.size))
+    }
+
+    lastMedia = currentMedia
     //schedule playtime video + 10 seconds + random 0-60 seconds
     currentSchedule = oracle.scheduler.scheduleOnce(10 + Random.nextInt(180) seconds, BoardActor(), PlayMedia(currentMedia))
   }
@@ -107,13 +115,22 @@ class IdleState(oracle : OracleActor) extends BaseState {
 
 class ChallengeState(oracle : OracleActor) extends BaseState {
   var oracleType : Oracle.Value = Oracle.random()
+
+  while(oracle.lastOracle == oracleType) {
+    oracleType = Oracle.random()
+  }
+  oracle.lastOracle = oracleType
+
   var currentSchedule : Cancellable = null
   val mediaFiles = MediaFile.getMediaFile(List("Challenge", oracleType.toString))
-  var challengedAgain = false;
+  var challengedAgain = false
+  var lastAnswer : MediaFile = null
 
-  BoardActor() ! Message("0", "Challenge state")
+  BoardActor() ! Message("0", "Challenge state " + oracleType)
 
   ButtonAnimatorActor() ! ButtonAnimatorActor.Animate("SensorSelect", Button.None)
+  ButtonAnimatorActor() ! SensorSelect(mutable.SortedSet[Button]().toSet)
+
   BoardActor() ! PlayMedia(mediaFiles(Random.nextInt(mediaFiles.size)))
 
   override def receive(message: Any): Unit = {
@@ -127,7 +144,14 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
           ButtonAnimatorActor() ! ButtonAnimatorActor.Animate("Pulse", trigger.button)
           currentSchedule.cancel()
           val answers = MediaFile.getMediaFile(List("Answer", oracleType.toString))
-          BoardActor() ! PlayMedia(answers(Random.nextInt(answers.size)))
+
+          var answer = answers(Random.nextInt(answers.size))
+          while(answer.equals(lastAnswer)) {
+            answer = answers(Random.nextInt(answers.size))
+          }
+          lastAnswer = answer
+
+          BoardActor() ! PlayMedia(answer)
           challengedAgain = false
         }
       }
@@ -138,6 +162,7 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
       case media:MediaComplete => {
         println("Finished playing " + media.media.name)
         isPlayingMedia = false
+        ButtonAnimatorActor() ! SensorSelect(mutable.SortedSet[Button]().toSet)
         ButtonAnimatorActor() ! ButtonAnimatorActor.Animate("SensorSelect", Button.None)
 
         if(currentSchedule!= null) {
@@ -167,6 +192,8 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
 }
 
 class OracleActor(val scheduler:Scheduler) extends Actor {
+  var lastOracle = Oracle.EarthOracle
+
   println("Creating Oracle Actor")
 
   var currentState : BaseState = new IdleState(this)

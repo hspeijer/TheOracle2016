@@ -48,9 +48,9 @@ class ButtonAnimatorActor extends Actor with ActorLogging {
 
       for(item <- sensorSelect) {
         if(currentSensors.contains(item._1)) {
-          sensorSelect.update(item._1, minMax(0, 100, item._2 + 2))
+          sensorSelect.update(item._1, minMax(0, 100, item._2 + 3))
         } else {
-          sensorSelect.update(item._1, minMax(0, 100, item._2 - 3))
+          sensorSelect.update(item._1, minMax(0, 100, item._2 - 1))
         }
       }
 
