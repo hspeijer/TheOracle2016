@@ -12,11 +12,14 @@ libraryDependencies ++= Seq(
   ws,
   specs2 % Test,
   "com.pi4j" % "pi4j-core" % "1.0",
+  "org.rxtx" % "rxtx" % "2.2pre2",
   "com.google.protobuf" % "protobuf-java" % "2.6.1"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 resolvers += "oss-snapshots-repo" at "https://oss.sonatype.org/content/groups/public"
+resolvers += Resolver.mavenLocal
+
 
 //watchSources <+= sourceDirectory map { _ / "app" / "actors" }
 

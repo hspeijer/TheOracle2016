@@ -1,5 +1,4 @@
-@(uuid: String)
-                              <html>
+<html>
 <head>
     <style>
         html, body {
@@ -39,29 +38,16 @@
             background: transparent;
         }
 
-        .button-container {
-            border: 2px solid #222;
-            border-radius: 10px;
-            width: 480px;
-            height: 105px;
-            margin: auto;
-            display: block;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .smoke-container {
-            border: 2px solid #222;
-            border-radius: 10px;
-            width: 105px;
-            height: 105px;
-            margin: auto;
-            display: block;
-            text-align: center;
-            position: absolute;
-            z-index: 10;
-            bottom: 10px;
-            right: 20px;
-        }
+        /*.button-container {*/
+            /*border: 2px solid #222;*/
+            /*border-radius: 10px;*/
+            /*width: 480px;*/
+            /*height: 105px;*/
+            /*margin: auto;*/
+            /*display: block;*/
+            /*text-align: center;*/
+            /*margin-bottom: 10px;*/
+        /*}*/
 
         .button-container img {
             width: 92px;
@@ -69,8 +55,8 @@
 
         .light {
             float: left;
-            height: 84px;
-            width: 84px;
+            height: 150px;
+            width: 150px;
             border: 1px solid gray;
             border-radius: 45px;
             margin: 4px;
@@ -90,6 +76,7 @@
         }
 
         .lightbar {
+            width: 320px;
             clear: both;
         }
 
@@ -112,13 +99,13 @@
     </style>
 </head>
 <body onload="init()">
-<div class="container">
-    <video id="video1" class="video">
-    </video>
+<!--<div class="container">-->
+    <!--<video id="video1" class="video">-->
+    <!--</video>-->
 
-</div>
+<!--</div>-->
 
-<div class="bottom">
+<!--<div class="bottom">-->
     <div class="button-container">
         <div class="lightbar">
             <div class="light" id="light-0" onclick="sendButton('fire')">&nbsp;</div>
@@ -136,18 +123,14 @@
             <div class="sensor" id="sensor-4">&nbsp;</div>
         </div>
     </div>
-
-    <div class="smoke-container" id="smoke">
-        &nbsp;
-    </div>
-</div>
+<!--</div>-->
 
 <div id="debug" style="">
     <p>Starting Oracle</p>
 </div>
 
 <script>
-    var myVideo = document.getElementById("video1");
+//    var myVideo = document.getElementById("video1");
     var debug = document.getElementById("debug");
     var socket
     var lights = []
@@ -192,11 +175,11 @@
 //        console.log(message);
 
             if(message.type === "media") {
-                var url = "/assets/mp4/" + message.name + ".mp4";
-                console.log("Play " + url)
-                myVideo.src = url
-                myVideo.play()
-                addDebug(message.msg)
+//                var url = "/assets/mp4/" + message.name + ".mp4";
+//                console.log("Play " + url)
+//                myVideo.src = url
+//                myVideo.play()
+//                addDebug(message.msg)
 
             } else if (message.type === "message") {
                 addDebug(message.msg)
@@ -204,13 +187,10 @@
                 updateSensors(message.sensors)
             } else if (message.type === "lights") {
                 updateLights(message)
-            } else if (message.type === "smoke") {
-                updateSmoke(message)
             }
         }
     }
 
-    var lastSensors = ""
     function sendSensors() {
         var keys = ['key81', 'key87', 'key69', 'key82', 'key84']
         var elements = ['fire', 'aether', 'earth', 'air', 'water']
@@ -222,15 +202,12 @@
             }
         }
 
-        var sensorString = JSON.stringify(sensors)
-        if(lastSensors != sensorString) {
-            socket.send(JSON.stringify ( {
-                msg : 'Sensor state ' + sensorString,
-                type : "sensor-state",
-                sensors : sensors
-            }))
-            lastSensors = sensorString;
-        }
+        var debug = JSON.stringify(sensors)
+        socket.send(JSON.stringify({
+            msg: 'Sensor state ' + debug,
+            type : "sensor-state",
+            sensors: sensors
+        }));
     }
 
     function updateSensors(sensorValues) {
@@ -266,18 +243,10 @@
         }));
     }
 
-    function updateSmoke(message) {
-        var element = document.getElementById("smoke")
-        addDebug("Smoke!")
-        element.setAttribute("style","background-color:rgb(" + message.intensity + "," + message.intensity + "," + message.intensity+")")
-        setTimeout(function() {
-            element.setAttribute("style","background-color:black")
-        }, message.duration)
-    }
-
     function addDebug(message) {
         var messageNode = document.createElement("p")
         messageNode.appendChild(document.createTextNode(message))
+        console.log(message)
         debug.appendChild(messageNode)
         debug.scrollTop = debug.scrollHeight;
     }

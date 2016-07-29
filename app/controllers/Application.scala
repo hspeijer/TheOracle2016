@@ -27,7 +27,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   println("Init Application")
   val oracle = system.actorOf(OracleActor.props(system.scheduler))
 
-  system.actorOf(Props[SensorActor])
+//  system.actorOf(Props[SensorActor])
+  system.actorOf(Props[ArduinoActor])
   system.actorOf(Props[DMXActor])
   system.actorOf(Props[VideoPlayerActor])
 
@@ -63,7 +64,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   }
 
   def media(path : String) = Action {
-    Ok("File:" + path)
+      Ok("File:" + path)
   }
 
 }

@@ -50,16 +50,16 @@ class UserActor(uid: String, board: ActorRef, out: ActorRef) extends Actor with 
     }
     case js: JsValue => {
 //      (js \ "msg").validate[String] map { Utility.escape(_) }  map { board ! Message(uid, _ ) }
-//      if(js \ "type" == "button-click") {
-//        js \ "button" match {
-//          case "air" => BoardActor() ! ButtonSelect(Button.Air)
-//          case "fire" => BoardActor() ! ButtonSelect(Button.Fire)
-//          case "earth" => BoardActor() ! ButtonSelect(Button.Earth)
-//          case "water" => BoardActor() ! ButtonSelect(Button.Water)
-//          case "aether" => BoardActor() ! ButtonSelect(Button.Aether)
-//        }
-//      }
-      if(((js \ "type").as[String]).equals("sensor-state")) {
+      if(((js \ "type").as[String]).equals("button-click")) {
+        (js \ "button").as[String] match {
+          case "air" => BoardActor() ! SensorSelect(mutable.SortedSet[Button](Button.Air).toSet)
+          case "fire" => BoardActor() ! SensorSelect(mutable.SortedSet[Button](Button.Fire).toSet)
+          case "earth" => BoardActor() ! SensorSelect(mutable.SortedSet[Button](Button.Earth).toSet)
+          case "water" => BoardActor() ! SensorSelect(mutable.SortedSet[Button](Button.Water).toSet)
+          case "aether" => BoardActor() ! SensorSelect(mutable.SortedSet[Button](Button.Aether).toSet)
+        }
+        println("button-click")
+      } else if (((js \ "type").as[String]).equals("sensor-state")) {
         var sensorState = mutable.SortedSet[Button]()
         (js \ "sensors" \ "fire").validate[Boolean] match {
           case s: JsSuccess[String] => sensorState += Button.Fire

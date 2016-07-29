@@ -64,13 +64,14 @@ class IdleState(oracle : OracleActor) extends BaseState {
 
   override def receive(message: Any): Unit = {
     message match  {
-      case _:SensorSelect => {
-        //If playing media, wait for clip to finish
-        if(!isPlayingMedia && !switchingState) {
-          switchingState = true
-          switchState()
+      case select:SensorSelect => {
+        if(!select.sensors.isEmpty) {
+          //If playing media, wait for clip to finish
+          if (!isPlayingMedia && !switchingState) {
+            switchingState = true
+            switchState()
+          }
         }
-
       }
       case _:PlayMedia => {
         if(!isPlayingMedia) {
@@ -123,7 +124,6 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
 
   var currentSchedule : Cancellable = null
   val mediaFiles = MediaFile.getMediaFile(List("Challenge", oracleType.toString))
-  var challengedAgain = false
   var lastAnswer : MediaFile = null
 
   BoardActor() ! Message("0", "Challenge state " + oracleType)
@@ -152,7 +152,6 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
           lastAnswer = answer
 
           BoardActor() ! PlayMedia(answer)
-          challengedAgain = false
         }
       }
       case _:PlayMedia => {
@@ -176,16 +175,9 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
   }
 
   def setTimeOut() {
-    currentSchedule = oracle.scheduler.scheduleOnce(30 seconds, new Runnable {
+    currentSchedule = oracle.scheduler.scheduleOnce(60 seconds, new Runnable {
       override def run(): Unit = {
-        if (!challengedAgain) {
-          challengedAgain = true
-          val answers = MediaFile.getMediaFile(List("ChallengeAgain", oracleType.toString))
-          BoardActor() ! PlayMedia(answers(Random.nextInt(answers.size)))
-          setTimeOut()
-        } else {
           oracle.currentState = new IdleState(oracle)
-        }
       }
     })
   }
@@ -203,6 +195,10 @@ class OracleActor(val scheduler:Scheduler) extends Actor {
   }
 
   def receive = {
+    case message: ButtonSelect => {
+      println("Button Select!")
+      BoardActor() ! SensorSelect(mutable.SortedSet[Button](message.button).toSet)
+    }
     case message: Any => {
       currentState.receive(message)
     }

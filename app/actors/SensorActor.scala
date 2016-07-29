@@ -52,7 +52,7 @@ class SensorActor extends Actor with ActorLogging {
           } else {
             sensorState -= button
           }
-          BoardActor() ! SensorSelect(sensorState.toSet)
+//          BoardActor() ! SensorSelect(sensorState.toSet)
           println("Sensors: " + sensorState)
         }
       }
