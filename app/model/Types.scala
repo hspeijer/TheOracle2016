@@ -41,7 +41,7 @@ case class ColourRGB(red: Short, green: Short, blue: Short)
 
 object ElementColours {
   val colours = List(
-    Button.Fire -> ColourRGB(0,0,0),
+    Button.Fire -> ColourRGB(255,0,0),
     Button.Aether -> ColourRGB(255,255,0),
     Button.Earth -> ColourRGB(0,255,0),
     Button.Air -> ColourRGB(0,255,255),

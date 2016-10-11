@@ -1,12 +1,16 @@
 package actors
 
 import java.io._
+import java.util.concurrent.TimeUnit
 
 import akka.actor.{Props, ActorLogging, Actor, ActorRef}
 import akka.event.LoggingReceive
 import gnu.io.{SerialPort, CommPortIdentifier}
 import model.{SensorSelect, Button}
 import model.Button._
+import org.influxdb.InfluxDBFactory
+import org.influxdb.dto.Point
+import play.api.Play
 
 import scala.collection.mutable
 
@@ -27,21 +31,32 @@ class BinaryProtocol extends ProtocolHandler {
 
   println("Init Binary Protocol")
 
+  val statsUrl = Play.current.configuration.getString("influx.url").getOrElse("http://192.168.56.101:8086")
+
+  val influxDB = InfluxDBFactory.connect(statsUrl, "root", "root")
+  val minDelta = 15
+
+  val dbName = "oracleSensors"
+  influxDB.createDatabase(dbName)
+
+  // Flush every 2000 Points, at least every 100ms
+  influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
+
   for(i <- 0 until ArduinoActor.sensors.length) {
     ArduinoActor.sensors(i) = new SensorState()
   }
 
-  /***/
   class SerialReader(in: InputStream) extends Runnable {
     def run: Unit = {
 
       val reader = new BufferedReader( new InputStreamReader(in))
       var inputLine = ""
       var measureIndex = 0
+      val emptyMessage = SensorSelect(mutable.SortedSet[Button]().toSet)
 
       while ((inputLine = reader.readLine()) != null ) {
         measureIndex += 1
-//        println("Received:" + inputLine)
+
         val values = inputLine.split(",")
         for(i <- 0 until values.length) {
           if(i < ArduinoActor.sensors.length && !values(i).isEmpty) {
@@ -49,38 +64,48 @@ class BinaryProtocol extends ProtocolHandler {
           }
         }
 
-        if(measureIndex % 5 == 0) {
-//          for(sensor <- ArduinoActor.sensors) {
-//            print(sensor.delta + ", ")
-//          }
-//
-//          println()
+        // Update for every third measurement
+        if(measureIndex % 3 == 0) {
+          val point1 : Point = Point.measurement("sensors")
+            .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+            .addField("fire", ArduinoActor.sensors(0).delta())
+            .addField("aether", ArduinoActor.sensors(1).delta())
+            .addField("earth", ArduinoActor.sensors(2).delta())
+            .addField("air", ArduinoActor.sensors(3).delta())
+            .addField("water", ArduinoActor.sensors(4).delta())
+            .build()
+
+          influxDB.write("oracleSensors", "autogen", point1)
 
           var max = -1
           var maxIndex = -1
 
           for(i <- 0 until ArduinoActor.sensors.length) {
             val delta = ArduinoActor.sensors(i).delta()
-            if(delta > 20 && delta > max) {
+
+            if(delta > minDelta && delta > max) {
               max = delta
               maxIndex = i
             }
           }
 
+          var lastMessage : SensorSelect = null
+
           if(max > 0) {
-            println("Sensor select " + maxIndex)
             var set = mutable.SortedSet[Button]()
             set += ArduinoActor.buttons(maxIndex)
-            BoardActor() ! SensorSelect(set.toSet)
-          } else {
-              BoardActor() ! SensorSelect(mutable.SortedSet[Button]().toSet)
 
+            val newMessage = SensorSelect(set.toSet)
+
+            if(!newMessage.equals(lastMessage)) {
+              BoardActor() ! newMessage
+            }
+          } else if(lastMessage != emptyMessage) {
+              lastMessage = emptyMessage
+              BoardActor() ! emptyMessage
           }
-
         }
       }
-
-      println("Exit loop")
 
       in.close()
     }
@@ -89,8 +114,7 @@ class BinaryProtocol extends ProtocolHandler {
 
 class ArduinoActor extends Actor with ActorLogging {
 
-//  val portId = "/dev/tty.usbmodem1411"
-  val portId = "/dev/ttyACM0"
+  val portId = Play.current.configuration.getString("tty.port").getOrElse("/dev/ttyACM0")
   var handler = new BinaryProtocol()
 
   println("Initializing Oracle Serial Protocol")
@@ -98,17 +122,19 @@ class ArduinoActor extends Actor with ActorLogging {
   def connect() = {
     try {
       println("Opening port at " + portId)
+
       val portIdentifier = CommPortIdentifier.getPortIdentifier(portId.toString)
+
       if (portIdentifier.isCurrentlyOwned) {
         println("Port is currently in use.")
       } else {
         val commPort = portIdentifier.open(this.getClass.getName, 2000)
+
         if (commPort.isInstanceOf[SerialPort]) {
           val serialPort = commPort.asInstanceOf[SerialPort]
           serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
 
           (new Thread(handler.getSerialReader(serialPort.getInputStream))).start
-//          (new Thread(handler.getSerialWriter(serialPort.getOutputStream, serialPort.getInputStream))).start
         } else {
           println("Only serial ports are handled.")
         }
@@ -117,16 +143,13 @@ class ArduinoActor extends Actor with ActorLogging {
       case e => println("Could not initialise serial port" + e.getMessage)
     }
   }
+
   override def preStart() = {
     try {
       connect()
     } catch {
       case error: UnsatisfiedLinkError => println("No RXTX lib loaded")
     }
-  }
-
-  override def postStop() = {
-
   }
 
   def receive = LoggingReceive {
@@ -136,7 +159,7 @@ class ArduinoActor extends Actor with ActorLogging {
 
 class SensorState {
 
-  val calibrated = new Array[Int](1024)
+  val calibrated = new Array[Int](512)
   var calibratedIndex = 0
   val smooth = new Array[Int](10)
   var smoothIndex = 0
@@ -162,10 +185,14 @@ class SensorState {
 
   def average(array : Array[Int]): Int = {
     var total = 0
+    var count = array.length + 1
     for (x <- array) {
       total += x
+      if(x == 0) {
+        count -= 1
+      }
     }
-    total / array.length
+    total / count
   }
 
   def delta() : Int = {

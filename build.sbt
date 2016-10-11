@@ -12,7 +12,9 @@ libraryDependencies ++= Seq(
   ws,
   specs2 % Test,
   "com.pi4j" % "pi4j-core" % "1.0",
-  "org.rxtx" % "rxtx" % "2.2pre2",
+  "org.rxtx" % "rxtx" % "2.1.7",
+//  "org.rxtx" % "rxtx" % "2.2pre2",
+  "org.influxdb" % "influxdb-java" % "2.3",
   "com.google.protobuf" % "protobuf-java" % "2.6.1"
 )
 

@@ -34,7 +34,6 @@ object OracleActor {
   // After a long while it goes back to challenge state but more impatient
   // If a long time passes without a question it tells the visitor to get lost and goes back to IdleState
   // If a question is answered the impatientce is gone and the visitor can ask more
-  // If the visitor waits again it goes impatient again
   // During the answering of a question the stone that was chosen stays lit. It goes out and goes back to the pattern that indicates
   // the visitor can ask another question
 
@@ -133,6 +132,16 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
 
   BoardActor() ! PlayMedia(mediaFiles(Random.nextInt(mediaFiles.size)))
 
+  def selectAnswer(): String = {
+    val answers = List("yes", "yes", "yes", "yes", "no", "maybe", "maybe", "none")
+
+    val answer = answers(Random.nextInt(answers.size))
+
+    BoardActor() ! Message("0", "Answer is " + answer)
+
+    return answer
+  }
+
   override def receive(message: Any): Unit = {
     message match  {
       case sensors:SensorSelect => {
@@ -143,7 +152,7 @@ class ChallengeState(oracle : OracleActor) extends BaseState {
           BoardActor() ! Message("0", "Sensor triggered! " + trigger)
           ButtonAnimatorActor() ! ButtonAnimatorActor.Animate("Pulse", trigger.button)
           currentSchedule.cancel()
-          val answers = MediaFile.getMediaFile(List("Answer", oracleType.toString))
+          val answers = MediaFile.getMediaFile(List("Answer", oracleType.toString, selectAnswer()))
 
           var answer = answers(Random.nextInt(answers.size))
           while(answer.equals(lastAnswer)) {
